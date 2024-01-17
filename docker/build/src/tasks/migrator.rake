@@ -14,35 +14,36 @@ namespace :db do
   end
 
   desc "Run migrations"
-  task :migrate, [:version] do |_, args|
+  task :migrate, :version, :app do |_, args|
     version = args[:version].to_i if args[:version]
-    Schematic::Migrator.new.migrate(version: version)
+    Schematic::Migrator.new.migrate(version: version, app: args.app)
   end
 
   desc "Remove migrations"
-  task :clean do |_, args|
-    Schematic::Migrator.new.clean
+  task :clean, :app do |_, args|
+    Schematic::Migrator.new.clean(app: args.app)
   end
 
   desc "Remove migrations and re-run migrations"
-  task :reset do |_, args|
-    Schematic::Migrator.new.clean
+  task :reset, :app do |_, args|
+    Schematic::Migrator.new.reset(app: args.app)
   end
 
   desc "Apply last n migrations"
-  task :apply, [:steps] do |_, args|
-    Schematic::Migrator.new.apply(steps: args.steps || 1)
+  task :apply, :steps, :app do |_, args|
+    Schematic::Migrator.new.apply(steps: args.steps || 1, app: args.app)
   end
 
   desc "Rollback last n migrations"
-  task :rollback, [:steps] do |_, args|
-    Schematic::Migrator.new.rollback(steps: args.steps || 1)
+  task :rollback, :steps, :app do |_, args|
+    Schematic::Migrator.new.rollback(steps: args.steps || 1, app: args.app)
   end
 
   desc "Redo last n migrations"
-  task :redo, [:steps] do |_, args|
-    Schematic::Migrator.new.redo(steps: args.steps || 1)
+  task :redo, :steps, :app do |_, args|
+    Schematic::Migrator.new.redo(steps: args.steps || 1, app: args.app)
   end
+
 
   desc "Create a migration file with a timestamp and name"
   task :create_migration, :name do |_, args|
@@ -55,24 +56,28 @@ namespace :db do
   end
 
   desc "Show applied schema migrations"
-  task :applied_migrations do |_, args|
-    Schematic::Migrator.new.show_applied_migrations
+  task :applied_migrations, :app do |_, args|
+    app = args.app
+    Schematic::Migrator.new.show_applied_migrations(app)
   end
 
   desc "Show a given applied schema migration"
-  task :applied_migration, :steps do |_, args|
+  task :applied_migration, :steps, :app do |_, args|
     steps = (args.steps || -1).to_i
-    Schematic::Migrator.new.show_applied_migration(steps)
+    app = args.app
+    Schematic::Migrator.new.show_applied_migration(steps,app)
   end
 
   desc "Show schema migrations to apply"
-  task :migrations_to_apply do |_, args|
-    Schematic::Migrator.new.show_migrations_to_apply
+  task :migrations_to_apply, :app do |_, args|
+    app = args.app
+    Schematic::Migrator.new.show_migrations_to_apply(app)
   end
 
   desc "Show a given schema migration to apply"
-  task :migration_to_apply, :steps do |_, args|
+  task :migration_to_apply, :steps, :app do |_, args|
     steps = (args.steps || 0).to_i
-    Schematic::Migrator.new.show_migration_to_apply(steps)
+    app = args.app
+    Schematic::Migrator.new.show_migration_to_apply(steps,app)
   end
 end

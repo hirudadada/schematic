@@ -1,0 +1,23 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bigdecimal (3.1.5)
+    dotenv (2.8.1)
+    mysql2 (0.5.5)
+    pg (1.5.4)
+    sequel (5.76.0)
+      bigdecimal
+    tiny_tds (2.1.6)
+
+PLATFORMS
+  x86_64-linux-musl
+
+DEPENDENCIES
+  dotenv (~> 2.8)
+  mysql2 (~> 0.5)
+  pg (~> 1.4)
+  sequel (~> 5.73)
+  tiny_tds (~> 2.1)
+
+BUNDLED WITH
+   2.4.10

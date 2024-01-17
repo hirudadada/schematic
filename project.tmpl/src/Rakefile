@@ -7,6 +7,7 @@ Rake.add_rakelib '../schematic/tasks'
 desc "Run deployment"
 task :deploy => 'app:env' do
   Rake::Task['db:migrate'].invoke
+  Rake::Task['vw:deploy'].invoke
   Rake::Task['fn:deploy'].invoke
   Rake::Task['sp:deploy'].invoke
   Rake::Task['job:deploy'].invoke
