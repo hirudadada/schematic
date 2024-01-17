@@ -5,8 +5,16 @@ require 'bundler/setup'
 Rake.add_rakelib '../schematic/tasks'
 
 desc "Run deployment"
-task :deploy => 'app:env' do
-  Rake::Task['db:migrate'].invoke
+task :deploy, [:app] => 'app:env' do |t, args|
+  app = args[:app]
+  ENV['APP'] = app
+
+  if app
+    Rake::Task['db:migrate'].invoke(nil, app)
+  else
+    Rake::Task['db:migrate'].invoke
+  end
+
   Rake::Task['vw:deploy'].invoke
   Rake::Task['fn:deploy'].invoke
   Rake::Task['sp:deploy'].invoke
