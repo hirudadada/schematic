@@ -47,7 +47,7 @@ module Schematic
         TMPL_NOTIFY_LEVEL_NETSEND=false
         TMPL_NOTIFY_LEVEL_PAGE=false
         TMPL_DELETE_LEVEL=false
-        TMPL_OWNER_LOGIN_NAME=SVC_DS_DEPLOY
+        TMPL_OWNER_LOGIN_NAME=SVC_DS_JOB
         TMPL_SCHEDULE_ENABLED=true
         TMPL_SCHEDULE_FREQ_TYPE=4
         TMPL_SCHEDULE_FREQ_INTERVAL=1
@@ -108,7 +108,7 @@ module Schematic
           # Set variables
           category_name = config['category_name']
           owner_login_name = config['owner_login_name']
-          database_name = config['database_name']
+          database_name = ENV['DB_NAME']
           job_name = config['job_name']
           #schedule_uid = SecureRandom.uuid
 
@@ -157,7 +157,8 @@ module Schematic
               'retry_attempts' => 0,
               'retry_interval' => 0,
               'os_run_priority' => 0,
-              'subsystem' => 'TSQL'
+              'subsystem' => 'TSQL',
+              'database_name' => database_name
             }.merge(step)
 
             # Add job step
@@ -174,7 +175,7 @@ module Schematic
               'os_run_priority' => step['os_run_priority'],
               'subsystem' => step['subsystem'],
               'command' => step['command'],
-              'database_name' => database_name
+              'database_name' => step['database_name']
             })
           end
 

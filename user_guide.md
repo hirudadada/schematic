@@ -138,33 +138,39 @@ make shell.dev
 Schematic provides a few handy rake tasks out-of-box:
 ```bash
 /home/app # rake -T
-rake app:env                          # Load environment settings
-rake app:version                      # Show application version
-rake check                            # Perform configuration checks
-rake cipher:decrypt_env_var[env_var]  # Decrypt an environment variable
-rake cipher:encrypt[string]           # Encrypt a string
-rake cipher:encrypt_env_var[env_var]  # Encrypt an environment variable
-rake cipher:generate_keys             # Generate cipher keys
-rake db:applied_migration[steps]      # Show a given applied schema migration
-rake db:applied_migrations            # Show applied schema migrations
-rake db:apply[steps]                  # Apply last n migrations
-rake db:clean                         # Remove migrations
-rake db:create_migration[name]        # Create a migration file with a timestamp and name
-rake db:migrate[version]              # Run migrations
-rake db:migration_to_apply[steps]     # Show a given schema migration to apply
-rake db:migrations_to_apply           # Show schema migrations to apply
-rake db:redo[steps]                   # Redo last n migrations
-rake db:reset                         # Remove migrations and re-run migrations
-rake db:rollback[steps]               # Rollback last n migrations
-rake db:test                          # Test database connection
-rake deploy                           # Run deployment
-rake gitops:generate                  # Generate GitOps config
-rake job:create[name]                 # Create job template files
-rake job:deploy                       # Apply jobs
-rake schematic:version                # Show Schematic version
-rake sp:create[name]                  # Create a stored procedure template file
-rake sp:deploy                        # Apply stored procedures
-rake version                          # Show version info
+rake app:env                           # Load environment settings
+rake app:version                       # Show application version
+rake check                             # Perform configuration checks
+rake cipher:decrypt_env_var[env_var]   # Decrypt an environment variable
+rake cipher:encrypt[string]            # Encrypt a string
+rake cipher:encrypt_env_var[env_var]   # Encrypt an environment variable
+rake cipher:generate_keys              # Generate cipher keys
+rake db:applied_migration[steps,app]   # Show a given applied schema migration
+rake db:applied_migrations[app]        # Show applied schema migrations
+rake db:apply[steps,app]               # Apply last n migrations
+rake db:clean[app]                     # Remove migrations
+rake db:create_migration[name]         # Create a migration file with a timestamp and name
+rake db:migrate[version,app]           # Run migrations
+rake db:migration_to_apply[steps,app]  # Show a given schema migration to apply
+rake db:migrations_to_apply[app]       # Show schema migrations to apply
+rake db:redo[steps,app]                # Redo last n migrations
+rake db:reset[app]                     # Remove migrations and re-run migrations
+rake db:rollback[steps,app]            # Rollback last n migrations
+rake db:test                           # Test database connection
+rake deploy[app]                       # Run deployment
+rake fn:create[name]                   # Create a functions template file
+rake fn:deploy                         # Apply function
+rake gitops:generate                   # Generate GitOps config
+rake job:create[name]                  # Create job template files
+rake job:deploy                        # Apply jobs
+rake schematic:version                 # Show Schematic version
+rake sp:create[name]                   # Create a stored procedure template file
+rake sp:deploy                         # Apply stored procedures
+rake sqlsequel:conver                  # Conver a.sql from SQL format to sequel migration format
+rake sqlsequel:create                  # Create source SQL format a.sql for conversion to sequel migration format
+rake version                           # Show version info
+rake vw:create[name]                   # Create a vies template file
+rake vw:deploy                         # Apply views
 ```
 
 ### Database migration create and deploy
