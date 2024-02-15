@@ -12,12 +12,13 @@ module Schematic
           job_name: <%= ENV['TMPL_JOB_NAME'] %>
           enabled: <%= ENV['TMPL_ENABLED'] %>
           delete_level: <%= ENV['TMPL_DELETE_LEVEL'] %>
-          description: _TEMPLATE
-          category_name: ETL - Data Staging
+          description: No description available.
+          category_name: [Uncategorized (Local)]
           owner_login_name: <%= ENV['TMPL_OWNER_LOGIN_NAME'] %>
-          schedule_name: _Hourly_Schedule_
+          run_as_user: <%= ENV['TMPL_RUN_AS_USER'] %>
+          schedule_name: <%= ENV['TMPL_JOB_NAME'] %>
           schedule_enabled: <%= ENV['TMPL_SCHEDULE_ENABLED'] %>
-          schedule_freq_type: 4 <%= ENV['TMPL_SCHEDULE_FREQ_TYPE'] %>
+          schedule_freq_type: <%= ENV['TMPL_SCHEDULE_FREQ_TYPE'] %>
           schedule_freq_interval: <%= ENV['TMPL_SCHEDULE_FREQ_INTERVAL'] %>
           schedule_freq_subday_type: <%= ENV['TMPL_SCHEDULE_FREQ_SUBDAY_TYPE']  %>
           schedule_freq_subday_interval: <%= ENV['TMPL_SCHEDULE_FREQ_SUBDAY_INTERVAL'] %>
@@ -29,14 +30,14 @@ module Schematic
           schedule_active_end_time: <%=  ENV['TMPL_SCHEDULE_ACTIVE_END_TIME'] %>
           job_steps:
             - id: 1
-              name: Transform Step 1
+              name: _Transform_Step_1_
               command: |
                 EXEC sp_template;
                 GO;
                 SELECT GETDATE();
                 GO;
             - id: 2
-              name: Transform Step 2
+              name: _Transform_Step_2_
               command: EXEC sp_template
       JOBTEMPLATE
 
@@ -47,7 +48,8 @@ module Schematic
         TMPL_NOTIFY_LEVEL_NETSEND=false
         TMPL_NOTIFY_LEVEL_PAGE=false
         TMPL_DELETE_LEVEL=false
-        TMPL_OWNER_LOGIN_NAME=SVC_DS_JOB
+        TMPL_OWNER_LOGIN_NAME=SVC_DS_DEPLOY
+        TMPL_RUN_AS_USER=SVC_DS_JOB
         TMPL_SCHEDULE_ENABLED=true
         TMPL_SCHEDULE_FREQ_TYPE=4
         TMPL_SCHEDULE_FREQ_INTERVAL=1
@@ -108,6 +110,7 @@ module Schematic
           # Set variables
           category_name = config['category_name']
           owner_login_name = config['owner_login_name']
+          run_as_user = config['run_as_user']
           database_name = ENV['DB_NAME']
           job_name = config['job_name']
           #schedule_uid = SecureRandom.uuid
@@ -158,7 +161,8 @@ module Schematic
               'retry_interval' => 0,
               'os_run_priority' => 0,
               'subsystem' => 'TSQL',
-              'database_name' => database_name
+              'database_name' => database_name,
+              'database_user_name' => run_as_user
             }.merge(step)
 
             # Add job step
@@ -175,7 +179,8 @@ module Schematic
               'os_run_priority' => step['os_run_priority'],
               'subsystem' => step['subsystem'],
               'command' => step['command'],
-              'database_name' => step['database_name']
+              'database_name' => step['database_name'],
+              'database_user_name' => step['database_user_name']
             })
           end
 
