@@ -36,29 +36,38 @@ module Schematic
         puts "\n  >> Executing script from #{file}\n"
 
         commands.each do |command|
-          unless command.strip.empty?
-            # Extract schema and procedure name from the command
-            match_data = command.match(/CREATE\s+PROCEDURE\s+\[(?<schema>.+)\]\.\[(?<procedure>.+)\]/i)
-            next unless match_data
+          db_connection.transaction do
+              unless command.strip.empty?
+                # Extract schema and procedure name from the command
+                match_data = command.match(/CREATE\s+PROCEDURE\s+\[(?<schema>.+)\]\.\[(?<procedure>.+)\]/i)
+                next unless match_data
 
-            schema_name = match_data[:schema]
-            procedure_name = match_data[:procedure]
+                schema_name = match_data[:schema]
+                procedure_name = match_data[:procedure]
 
-            db_name = @options[:db_name]
-            # Check if the procedure exists
-            check_sql = "SELECT * FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id WHERE type = 'P' AND o.name = '#{procedure_name}' AND s.name = '#{schema_name}'"
-            result = db_connection.fetch(check_sql).all
+                db_name = @options[:db_name]
+                # Check if the procedure exists
+                check_sql = "SELECT * FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id WHERE type = 'P' AND o.name = '#{procedure_name}' AND s.name = '#{schema_name}'"
+                result = db_connection.fetch(check_sql).all
 
-            if result.nil? || result.empty?
-              puts "  >> Create new stored procedure.\n\n"
-              db_connection.run(command)
-            else
-              alter_command = command.gsub(/CREATE\s+PROCEDURE/i, 'ALTER PROCEDURE')
-              puts "  >> Update existing stored procedure.\n\n"
-              db_connection.run(alter_command)
-            end
+                # Set ANSI_NULLS, ANSI_WARNINGS ON
+                db_connection.execute("SET ANSI_NULLS ON;")
+                db_connection.execute("SET ANSI_WARNINGS ON;")
+                #db_opt = db_connection.fetch("select sessionproperty('ANSI_NULLS') AS ANSI_NULLS;").first
+                #db_opt.merge!(db_connection.fetch("select sessionproperty('ANSI_WARNINGS') AS ANSI_WARNINGS;").first)
+                #puts db_opt
+
+                if result.nil? || result.empty?
+                  puts "  >> Create new stored procedure.\n\n"
+                  db_connection.run(command)
+                else
+                  alter_command = command.gsub(/CREATE\s+PROCEDURE/i, 'ALTER PROCEDURE')
+                  puts "  >> Update existing stored procedure.\n\n"
+                  db_connection.run(alter_command)
+                end
 
 
+              end
           end
         end
       end

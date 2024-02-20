@@ -49,7 +49,7 @@ module Schematic
         TMPL_NOTIFY_LEVEL_PAGE=false
         TMPL_DELETE_LEVEL=false
         TMPL_OWNER_LOGIN_NAME=SVC_DS_DEPLOY
-        TMPL_RUN_AS_USER=SVC_DS_JOB
+        TMPL_RUN_AS_USER=
         TMPL_SCHEDULE_ENABLED=true
         TMPL_SCHEDULE_FREQ_TYPE=4
         TMPL_SCHEDULE_FREQ_INTERVAL=1
@@ -93,7 +93,6 @@ module Schematic
     def deploy
 
       job_db = db_connection
-
 
       # Begin transaction
       job_db.transaction do
