@@ -39,7 +39,7 @@ module Schematic
           db_connection.transaction do
               unless command.strip.empty?
                 # Extract schema and procedure name from the command
-                match_data = command.match(/CREATE\s+PROCEDURE\s+\[(?<schema>.+)\]\.\[(?<procedure>.+)\]/i)
+                match_data = command.match(/CREATE\s+PROCEDURE\s+\[(?<schema>.+)\]\.\[(?<procedure>.+)\]/i) || command.match(/ALTER\s+PROCEDURE\s+\[(?<schema>.+)\]\.\[(?<procedure>.+)\]/i)
                 next unless match_data
 
                 schema_name = match_data[:schema]
@@ -58,8 +58,9 @@ module Schematic
                 #puts db_opt
 
                 if result.nil? || result.empty?
+                  create_command = command.gsub(/ALTER\s+PROCEDURE/i, 'CREATE PROCEDURE')
                   puts "  >> Create new stored procedure.\n\n"
-                  db_connection.run(command)
+                  db_connection.run(create_command)
                 else
                   alter_command = command.gsub(/CREATE\s+PROCEDURE/i, 'ALTER PROCEDURE')
                   puts "  >> Update existing stored procedure.\n\n"

@@ -75,6 +75,7 @@ module Schematic
                   when 'date' then "Date"
                   when 'time' then "Time, only_time: true"
                   when 'bit','boolean' then "TrueClass"
+                  when 'money' then "'money'"
                     
                   else raise "Unknown type: #{type}"
                   end

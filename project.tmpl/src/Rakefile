@@ -18,5 +18,6 @@ task :deploy, [:app] => 'app:env' do |t, args|
   Rake::Task['vw:deploy'].invoke
   Rake::Task['fn:deploy'].invoke
   Rake::Task['sp:deploy'].invoke
+  Rake::Task['seed:deploy'].invoke
   Rake::Task['job:deploy'].invoke
 end
