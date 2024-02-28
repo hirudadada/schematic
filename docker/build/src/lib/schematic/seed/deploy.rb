@@ -7,7 +7,7 @@ module Schematic
     def create(seedname)
       seed_template = <<~TEMPLATE
       {
-        "PK": ["Source_System", "Source_DB","Source_Schema", "Source_Table", "Target_DB", "Target_Schema", "Target_Table"],
+        "UK": ["Source_System", "Source_DB","Source_Schema", "Source_Table", "Target_DB", "Target_Schema", "Target_Table"],
         "DW_ETL_LOG.ETL_Source_Configs": [
           {
             "TableID":"1",
@@ -53,9 +53,9 @@ module Schematic
       return result > 0
     end
 
-    def record_exist?(tbl_schema, tbl_name, record, pks)
+    def record_exist?(tbl_schema, tbl_name, record, uks)
       qualified_tbl_name = Sequel.qualify(tbl_schema, tbl_name)
-      conditions = pks.map { |pk| { pk.to_sym => record[pk] } }
+      conditions = uks.map { |uk| { uk.to_sym => record[uk] } }
       result = db_connection[qualified_tbl_name].where(Sequel.&(*conditions)).count
       return result > 0
     end
@@ -75,8 +75,8 @@ module Schematic
             puts "Reading data from file #{f} ...\n\n"
             jcontent = JSON.parse(content)
 
-            pks = jcontent["PK"]
-            jcontent.delete("PK")
+            uks = jcontent["UK"]
+            jcontent.delete("UK")
 
             jcontent.each do |tbl,row|
                 tbl_schema, tbl_name = tbl.match(/(\w+).(\w+)/).captures
@@ -93,8 +93,8 @@ module Schematic
                       end
                     end
 
-                    # Check record exist by PK.
-                    unless record_exist?(tbl_schema, tbl_name, r, pks)
+                    # Check record exist by UK.
+                    unless record_exist?(tbl_schema, tbl_name, r, uks)
                       db_connection[qualified_tbl_name].insert(r)
                     end
                   end
