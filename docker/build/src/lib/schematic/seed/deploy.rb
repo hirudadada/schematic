@@ -90,6 +90,12 @@ module Schematic
                     r.each do |k, v|
                       if v.is_a?(::Hash)
                         r[k] = v.to_json
+                      elsif v.is_a?(String)
+                        if v.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                          r[k] = DateTime.parse(v) rescue v
+                        elsif v.upcase == 'NULL'
+                          r[k] = nil
+                        end
                       end
                     end
 
