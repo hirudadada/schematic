@@ -15,7 +15,6 @@ module Schematic
           description: No description available.
           category_name: [Uncategorized (Local)]
           owner_login_name: <%= ENV['TMPL_OWNER_LOGIN_NAME'] %>
-          run_as_user: <%= ENV['TMPL_RUN_AS_USER'] %>
           schedule_name: <%= ENV['TMPL_JOB_NAME'] %>
           schedule_enabled: <%= ENV['TMPL_SCHEDULE_ENABLED'] %>
           schedule_freq_type: <%= ENV['TMPL_SCHEDULE_FREQ_TYPE'] %>
@@ -49,7 +48,6 @@ module Schematic
         TMPL_NOTIFY_LEVEL_PAGE=false
         TMPL_DELETE_LEVEL=false
         TMPL_OWNER_LOGIN_NAME=SVC_DS_DEPLOY
-        TMPL_RUN_AS_USER=
         TMPL_SCHEDULE_ENABLED=true
         TMPL_SCHEDULE_FREQ_TYPE=4
         TMPL_SCHEDULE_FREQ_INTERVAL=1
@@ -109,7 +107,6 @@ module Schematic
           # Set variables
           category_name = config['category_name']
           owner_login_name = config['owner_login_name']
-          run_as_user = config['run_as_user']
           database_name = ENV['DB_NAME']
           job_name = config['job_name']
           #schedule_uid = SecureRandom.uuid
@@ -160,8 +157,7 @@ module Schematic
               'retry_interval' => 0,
               'os_run_priority' => 0,
               'subsystem' => 'TSQL',
-              'database_name' => database_name,
-              'database_user_name' => run_as_user
+              'database_name' => database_name
             }.merge(step)
 
             # Add job step
@@ -178,8 +174,7 @@ module Schematic
               'os_run_priority' => step['os_run_priority'],
               'subsystem' => step['subsystem'],
               'command' => step['command'],
-              'database_name' => step['database_name'],
-              'database_user_name' => step['database_user_name']
+              'database_name' => step['database_name']
             })
           end
 
