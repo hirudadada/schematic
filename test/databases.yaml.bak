@@ -1,0 +1,12 @@
+---
+databases:
+  - DB_HOST: dev.db
+    DB_NAME: schematic1
+    DATABASE_URL: tinytds://dev.db/schematic1?textsize=1024000
+    DB_TYPE: mssql
+    DB_ADAPTER: tinytds
+  - DB_HOST: dev.db
+    DB_NAME: schematic2
+    DATABASE_URL: tinytds://dev.db/schematic2?textsize=1024000
+    DB_TYPE: mssql
+    DB_ADAPTER: tinytds

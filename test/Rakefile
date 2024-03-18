@@ -1,10 +1,38 @@
 # frozen-string-literal: true
 
 require 'bundler/setup'
+require 'yaml'
 
 Rake.add_rakelib '../schematic/tasks'
 
 desc "Run deployment"
-task :deploy do
-  Rake::Task['db:migrate'].invoke
+task :deploy, [:app] => 'app:env' do |t, args|
+  #databases = YAML.load_file('databases.yaml')['databases']
+  databases = YAML.safe_load(File.open("databases.yaml"), aliases: true)
+
+  databases['databases'].each do |db|
+    ENV['DB_HOST'] = db['DB_HOST']
+    ENV['DB_NAME'] = db['DB_NAME']
+    ENV['DATABASE_URL'] = db['DATABASE_URL']
+    ENV['DB_TYPE'] = db['DB_TYPE']
+    ENV['DB_ADAPTER'] = db['DB_ADAPTER']
+
+    puts "\n\nDeployment started on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n"
+    puts "-" * 70 + "\n"
+    if args[:app]
+      ENV['APP'] = args[:app]
+      Rake::Task['db:migrate'].reenable
+      Rake::Task['db:migrate'].invoke(nil, args[:app])
+    else
+      Rake::Task['db:migrate'].reenable
+      Rake::Task['db:migrate'].invoke
+    end
+
+    ['vw', 'fn', 'sp', 'seed', 'job'].each do |task|
+      Rake::Task["#{task}:deploy"].reenable
+      Rake::Task["#{task}:deploy"].invoke
+    end
+    puts "Deployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n"
+  end
+
 end

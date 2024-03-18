@@ -13,6 +13,7 @@ namespace :vw do
 
   desc "Apply views"
   task :deploy do |_, args|
+    puts "\nStart Apply views to #{ENV['DB_NAME']} ...\n" unless Dir.glob("#{ENV['APP_HOME']}/views/*.sql").empty?
     Schematic::Vw.new.deploy unless Dir.glob("#{ENV['APP_HOME']}/views/*.sql").empty?
   end
 end

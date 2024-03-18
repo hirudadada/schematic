@@ -205,7 +205,7 @@ module Schematic
           })
 
           # Add server to the job
-          puts "  >> Adding server to the job #{job_name}\n---------------------------------------------\n"
+          puts "  >> Adding server to the job #{job_name}\n\n"
           job_db.call_mssql_sproc(:sp_add_jobserver, args: {
             'job_id' => job_id.to_s,
             'server_name' => '(local)'

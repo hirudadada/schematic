@@ -13,6 +13,7 @@ namespace :job do
 
   desc "Apply jobs"
   task :deploy do |_, args|
+    puts "\nStart Apply jobs to #{ENV['DB_NAME']} ...\n\n" unless Dir.glob("#{ENV['APP_HOME']}/jobs/*.yaml").empty?
     require "dotenv"
     Dotenv.load(*Dir["#{ENV['ENV_HOME']}/**/*.env"])
     Schematic::Job.new.deploy unless Dir.glob("#{ENV['APP_HOME']}/jobs/*.yaml").empty?

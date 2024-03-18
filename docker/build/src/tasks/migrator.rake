@@ -15,8 +15,9 @@ namespace :db do
 
   desc "Run migrations"
   task :migrate, :version, :app do |_, args|
+    puts "\nStart schema migration to #{ENV['DB_NAME']} ...\n" unless Dir.glob("#{ENV['APP_HOME']}/db/migrations/*.rb").empty?
     version = args[:version].to_i if args[:version]
-    Schematic::Migrator.new.migrate(version: version, app: args.app)
+    Schematic::Migrator.new.migrate(version: version, app: args.app) unless Dir.glob("#{ENV['APP_HOME']}/db/migrations/*.rb").empty?
   end
 
   desc "Remove migrations"

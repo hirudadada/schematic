@@ -9,7 +9,7 @@ module Schematic
         AS
         BEGIN
           SELECT * FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id
-          WHERE type = 'P' AND o.name = 'sp_name' AND s.name = 'dbo'
+          WHERE type = 'P' AND o.name = '#{spname}' AND s.name = 'dbo'
         END
         TEMPLATE
 

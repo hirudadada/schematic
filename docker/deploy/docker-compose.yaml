@@ -16,6 +16,7 @@ services:
     working_dir: ${APP_HOME}
     volumes:
       - ../../test:${APP_HOME}
+      - ./mssql/scripts:${APP_HOME}/scripts
       # for Schematic development only
       - ../build/src:${SCHEMATIC_HOME}
     entrypoint: /bin/sh

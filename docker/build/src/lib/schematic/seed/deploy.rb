@@ -66,13 +66,13 @@ module Schematic
       dir = Pathname.new(seed_dir)
       seed_files = Dir.glob(dir.join("*.json")).sort
 
-      puts "\nStarting Seed data load processe... \n"
+      #puts "\nStarting Seed data load processe... \n"
       ### Loading table by filename order
       seed_files.each do |f|
-        puts "=================================================================\n"
+        #puts "=================================================================\n"
 
             content = File.read(f)
-            puts "Reading data from file #{f} ...\n\n"
+            puts "  >> Reading data from file #{f} ...\n\n"
             jcontent = JSON.parse(content)
 
             uks = jcontent["UK"]
@@ -84,7 +84,7 @@ module Schematic
 
                 # Check table exist?
                 if table_exist?(tbl_schema, tbl_name)
-                  puts "Loading data into Table: #{tbl} ...\n\n"
+                  puts "  >> Loading data into Table: #{tbl} ...\n\n"
 
                   row.each do |r|
                     r.each do |k, v|
@@ -101,18 +101,24 @@ module Schematic
 
                     # Check record exist by UK.
                     unless record_exist?(tbl_schema, tbl_name, r, uks)
-                      db_connection[qualified_tbl_name].insert(r)
+                      if ENV['DB_TYPE'].downcase == 'mssql'
+                        db_connection.execute("SET IDENTITY_INSERT [#{tbl_schema}].[#{tbl_name}] ON")
+                        db_connection[qualified_tbl_name].insert(r)
+                        db_connection.execute("SET IDENTITY_INSERT [#{tbl_schema}].[#{tbl_name}] OFF")
+                      else
+                        db_connection[qualified_tbl_name].insert(r)
+                      end
                     end
                   end
-                  puts "Loading data into Table: #{tbl} ... DONE. \n\n"
+                  puts "  >> Loading data into Table: #{tbl} ... DONE. \n\n"
                 else 
-                  puts "Table #{tbl} doesn't exist. quit...\n\n"
+                  puts "  >> Table #{tbl} doesn't exist. quit...\n\n"
                 end
             end
 
 
       end
-      puts "Seed data load processes completed! \n"
+      puts "  >> Seed data load processes completed! \n"
     end
   end
 end

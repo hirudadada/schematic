@@ -13,6 +13,7 @@ namespace :sp do
 
   desc "Apply stored procedures"
   task :deploy do |_, args|
+    puts "\nStart Apply Stored Procedures to #{ENV['DB_NAME']} ...\n" unless Dir.glob("#{ENV['APP_HOME']}/stored_procedures/*.sql").empty?
     Schematic::Sp.new.deploy unless Dir.glob("#{ENV['APP_HOME']}/stored_procedures/*.sql").empty?
   end
 end

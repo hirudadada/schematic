@@ -14,6 +14,7 @@ namespace :seed do
 
   desc "Load Seed data"
   task :deploy do |_, args|
+    puts "\nStart Apply seed data to #{ENV['DB_NAME']} ...\n\n" unless Dir.glob("#{ENV['APP_HOME']}/db/seeds/*.json").empty?
     Schematic::Seed.new.deploy unless Dir.glob("#{ENV['APP_HOME']}/db/seeds/*.json").empty?
   end
 end

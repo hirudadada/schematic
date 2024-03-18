@@ -13,6 +13,7 @@ namespace :fn do
 
   desc "Apply function"
   task :deploy do |_, args|
+    puts "\nStart Apply functions to #{ENV['DB_NAME']} ...\n" unless Dir.glob("#{ENV['APP_HOME']}/functions/*.sql").empty?
     Schematic::Fn.new.deploy unless Dir.glob("#{ENV['APP_HOME']}/functions/*.sql").empty?
   end
 end

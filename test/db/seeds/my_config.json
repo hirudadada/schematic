@@ -1,0 +1,26 @@
+{
+  "UK": ["Source_System", "Source_DB","Source_Schema", "Source_Table", "Target_DB", "Target_Schema", "Target_Table"],
+  "DW_ETL_LOG.ETL_Source_Configs": [
+    {
+      "TableID":"1",
+      "Source_System":"ACSC",
+      "Source_DB": "data-ingestion-acsc",
+      "Source_Schema": "DW_ETL",
+      "Source_Table": "SCL_G_CFPCN",
+      "Target_DB": "data-ingestion-acsc",
+      "Target_Schema": "DW_ETL",
+      "Target_Table": "CASDD0PDV2_CFPCN",
+      "Key_Mapping": "[ACCTCN], [ATYPCN]",
+      "Batch_NoofRcds": "8000",
+      "EntryType_to_ModLog": "NULL",
+      "Max_Process_datetime": "2024-02-23 15:45:01",
+      "Target_ModLog": "NULL",
+      "Last_Modified": "NULL",
+      "Remove_Journal": "Y",
+      "Verification_exclude": "[CACTCN]",
+      "Verification_Source_Rename": "NULL",
+      "Target_Remove_Delete": "N",
+      "Parsing_interval_ms": "15"
+    }
+  ]
+}
