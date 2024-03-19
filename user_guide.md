@@ -19,6 +19,7 @@ An Rdb schema migration tools that develop on ruby and Supporting SQL Server and
     - [Stored Procedures create and deploy](#stored-procedures-create-and-deploy)
     - [SQL Server jobs create and deploy](#sql-server-jobs-create-and-deploy)
     - [Deploy All (DB schema, stored procedures, Agent jobs)](#deploy-all-db-schema-stored-procedures-agent-jobs)
+    - [Multi Target Database deployment](#multi-target-database-deployment)
     - [Generate cipher keys](#generate-cipher-keys)
     - [Generate GitOps config](#generate-gitops-config)
   - [Building/Push applicaiton images](#buildingpush-applicaiton-images)
@@ -116,10 +117,10 @@ make up
 ```
 ### Run database setup
 ```bash
-make shell.dev.db
+make shell.dev
 
 # Now you get into the shell of the database container
-./setup-db.sh
+ruby ./scripts/setup-db.rb
 exit
 ```
 This ```setup-db.sql``` file use to prepare database setup for your development, for example, ```db```, ```schema``` and ```login``` setup. you may update as your need
@@ -164,6 +165,8 @@ rake gitops:generate                   # Generate GitOps config
 rake job:create[name]                  # Create job template files
 rake job:deploy                        # Apply jobs
 rake schematic:version                 # Show Schematic version
+rake seed:create[name]                 # Create a seed data template file
+rake seed:deploy                       # Load Seed data
 rake sp:create[name]                   # Create a stored procedure template file
 rake sp:deploy                         # Apply stored procedures
 rake sqlsequel:conver                  # Conver a.sql from SQL format to sequel migration format
@@ -339,6 +342,53 @@ Completed migration up of data_staging_acsc
   >> Adding schedule to the job acsc_CFPAI02_daily_agg
   >> Adding server to the job acsc_CFPAI02_daily_agg
 ---------------------------------------------
+```
+
+### Multi Target Database deployment
+**Configuration file for multi database target**
+Under the root path in each services, here is a databases.yaml that may define multi databases inside the databases array. here the sample.
+```json
+---
+defaults: &defaults
+    DB_TYPE: mssql
+    DB_ADAPTER: tinytds
+
+databases:
+  - DB_HOST: dev.db
+    DB_NAME: data_staging_cms
+    DATABASE_URL: tinytds://dev.db/data_staging_cms?textsize=1024000
+    <<: *defaults
+  - DB_HOST: dev.db
+    DB_NAME: data_staging_cms_pla
+    DATABASE_URL: tinytds://dev.db/data_staging_cms_pla?textsize=1024000
+    <<: *defaults
+```
+**Test your deployment for multi database target**
+execute the ```rake deploy``` ; that will trigger multi database target deployment according to what you defined in ```databases.yaml```. below are the execution output
+```bash
+
+/home/app # rake deploy
+
+
+Deployment started on: dev.db\data_staging_cms
+----------------------------------------------------------------------
+
+Start schema migration to data_staging_cms ...
+{:target=>nil, :app=>nil}
+Completed migration up of data_staging_cms
+
+Deployment completed on: dev.db\data_staging_cms
+
+
+
+Deployment started on: dev.db\data_staging_cms_pla
+----------------------------------------------------------------------
+
+Start schema migration to data_staging_cms_pla ...
+{:target=>nil, :app=>nil}
+Completed migration up of data_staging_cms_pla
+
+Deployment completed on: dev.db\data_staging_cms_pla
 ```
 
 

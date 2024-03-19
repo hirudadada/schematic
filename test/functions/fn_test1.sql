@@ -1,6 +1,0 @@
-CREATE FUNCTION [dbo].[fn_test1]()
-RETURNS INT
-AS
-BEGIN
-  RETURN (1);
-END;

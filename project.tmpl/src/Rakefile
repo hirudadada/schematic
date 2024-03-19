@@ -32,7 +32,7 @@ task :deploy, [:app] => 'app:env' do |t, args|
       Rake::Task["#{task}:deploy"].reenable
       Rake::Task["#{task}:deploy"].invoke
     end
-    puts "Deployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n"
+    puts "\nDeployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n\n"
   end
 
 end
