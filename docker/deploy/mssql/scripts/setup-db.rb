@@ -36,7 +36,7 @@ databases.each do |db|
     puts "DB #{db_config['DB_NAME']} already exists, skip create DB "
   else
     # Run the setup-db.sql script
-    puts "#{db_config['DB_NAME']} Does't exist, create DB "
+    puts "DB #{db_config['DB_NAME']} doesn't exist, create DB "
     File.read('./scripts/sql/setup-db.sql').gsub('$(MSSQL_DATABASE)', db_config['DB_NAME']).split("GO").each do |sql|
       db_connection.run(sql)
     end

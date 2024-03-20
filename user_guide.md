@@ -18,7 +18,7 @@ An Rdb schema migration tools that develop on ruby and Supporting SQL Server and
     - [Database migration create and deploy](#database-migration-create-and-deploy)
     - [Stored Procedures create and deploy](#stored-procedures-create-and-deploy)
     - [SQL Server jobs create and deploy](#sql-server-jobs-create-and-deploy)
-    - [Deploy All (DB schema, stored procedures, Agent jobs)](#deploy-all-db-schema-stored-procedures-agent-jobs)
+    - [Deploy all objects for a single DB target](#deploy-all-objects-for-a-single-db-target)
     - [Multi Target Database deployment](#multi-target-database-deployment)
     - [Generate cipher keys](#generate-cipher-keys)
     - [Generate GitOps config](#generate-gitops-config)
@@ -312,37 +312,36 @@ rake job:deploy
 ---------------------------------------------
 ```
 
-### Deploy All (DB schema, stored procedures, Agent jobs)
+### Deploy all objects for a single DB target
 
-Run ```rake deploy```
-
+Run ```rake deploy```  or ```rake deploy[etl_core]```
 ```bash
-rake deploy
-/usr/local/bundle/gems/sequel-5.74.0/lib/sequel/adapters/tinytds.rb:34: warning: undefining the allocator of T_DATA class TinyTds::Result
-Completed migration up of data_staging_acsc
+/home/app # rake deploy
 
-  >> Executing script from /home/app/stored_procedures/data_staging_acsc/sp_acsc_CFPAI01_daily_agg.sql
+
+Deployment started on: dev.db\data_ingestion_cms
+--------------------------------------------------------------------------------
+
+Start schema migration to data_ingestion_cms ...
+{:target=>nil, :app=>nil}
+Completed migration up of data_ingestion_cms
+
+Start Apply views to data_ingestion_cms ...
+
+  >> Executing script from /home/app/views/vw_test1.sql
+  >> Update existing view.
+
+
+Start Apply Stored Procedures to data_ingestion_cms ...
+
+  >> Executing script from /home/app/stored_procedures/sp_test1.sql
   >> Update existing stored procedure.
 
 
-  >> Executing script from /home/app/stored_procedures/data_staging_acsc/sp_acsc_CFPAI02_daily_agg.sql
-  >> Update existing stored procedure.
-
-  >> Loading configuration from /home/app/jobs/data_staging_acsc/acsc_CFPAI01_daily_agg.yaml
-  >> Creating job acsc_CFPAI01_daily_agg
-    >> Adding step Transform Step 1
-    >> Adding step Transform Step 2
-  >> Adding schedule to the job acsc_CFPAI01_daily_agg
-  >> Adding server to the job acsc_CFPAI01_daily_agg
----------------------------------------------
-  >> Loading configuration from /home/app/jobs/data_staging_acsc/acsc_CFPAI02_daily_agg.yaml
-  >> Creating job acsc_CFPAI02_daily_agg
-    >> Adding step Transform Step 1
-    >> Adding step Transform Step 2
-  >> Adding schedule to the job acsc_CFPAI02_daily_agg
-  >> Adding server to the job acsc_CFPAI02_daily_agg
----------------------------------------------
+Deployment completed on: dev.db\data_ingestion_cms
 ```
+
+
 
 ### Multi Target Database deployment
 **Configuration file for multi database target**
@@ -355,40 +354,66 @@ defaults: &defaults
 
 databases:
   - DB_HOST: dev.db
-    DB_NAME: data_staging_cms
-    DATABASE_URL: tinytds://dev.db/data_staging_cms?textsize=1024000
+    DB_NAME: data_ingestion_cms_snd
+    DATABASE_URL: tinytds://dev.db/data_ingestion_cms_snd?textsize=1024000
     <<: *defaults
   - DB_HOST: dev.db
-    DB_NAME: data_staging_cms_pla
-    DATABASE_URL: tinytds://dev.db/data_staging_cms_pla?textsize=1024000
-    <<: *defaults
+    DB_NAME: data_ingestion_cms_pla
+    DATABASE_URL: tinytds://dev.db/data_ingestion_cms_pla?textsize=1024000
+    DB_TYPE: mssql
+    DB_ADAPTER: tinytds
 ```
-**Test your deployment for multi database target**
+**Deploy all objects for a Multiple DB target**
 execute the ```rake deploy``` ; that will trigger multi database target deployment according to what you defined in ```databases.yaml```. below are the execution output
 ```bash
-
-/home/app # rake deploy
-
-
-Deployment started on: dev.db\data_staging_cms
-----------------------------------------------------------------------
-
-Start schema migration to data_staging_cms ...
-{:target=>nil, :app=>nil}
-Completed migration up of data_staging_cms
-
-Deployment completed on: dev.db\data_staging_cms
+/home/app # rake deploy_all[etl_core]
 
 
+Deployment started on: dev.db\data_ingestion_cms_snd
+--------------------------------------------------------------------------------
 
-Deployment started on: dev.db\data_staging_cms_pla
-----------------------------------------------------------------------
+Start schema migration to data_ingestion_cms_snd ...
+{:target=>nil, :app=>"etl_core"}
+Completed migration up of data_ingestion_cms_snd
 
-Start schema migration to data_staging_cms_pla ...
-{:target=>nil, :app=>nil}
-Completed migration up of data_staging_cms_pla
+Start Apply views to data_ingestion_cms_snd ...
 
-Deployment completed on: dev.db\data_staging_cms_pla
+  >> Executing script from /home/app/views/vw_test1.sql
+  >> Update existing view.
+
+
+Start Apply Stored Procedures to data_ingestion_cms_snd ...
+
+  >> Executing script from /home/app/stored_procedures/sp_test1.sql
+  >> Update existing stored procedure.
+
+
+Deployment completed on: dev.db\data_ingestion_cms_snd
+
+
+
+Deployment started on: dev.db\data_ingestion_cms_pla
+--------------------------------------------------------------------------------
+
+Start schema migration to data_ingestion_cms_pla ...
+{:target=>nil, :app=>"etl_core"}
+Completed migration up of data_ingestion_cms_pla
+
+Start Apply views to data_ingestion_cms_pla ...
+
+  >> Executing script from /home/app/views/vw_test1.sql
+  >> Update existing view.
+
+
+Start Apply Stored Procedures to data_ingestion_cms_pla ...
+
+  >> Executing script from /home/app/stored_procedures/sp_test1.sql
+  >> Update existing stored procedure.
+
+
+Deployment completed on: dev.db\data_ingestion_cms_pla
+
+/home/app #
 ```
 
 
