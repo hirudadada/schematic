@@ -36,29 +36,35 @@ module Schematic
         puts "\n  >> Executing script from #{file}\n"
 
         commands.each do |command|
-          unless command.strip.empty?
-            # Extract schema and view name from the command
-            match_data = command.match(/CREATE\s+VIEW\s+\[(?<schema>.+)\]\.\[(?<view>.+)\]/i)
-            next unless match_data
+          db_connection.transaction do
+            unless command.strip.empty?
+              # Extract schema and view name from the command
+              match_data = command.match(/CREATE\s+VIEW\s+\[(?<schema>.+)\]\.\[(?<view>.+)\]/i)
+              next unless match_data
 
-            schema_name = match_data[:schema]
-            view_name = match_data[:view]
+              schema_name = match_data[:schema]
+              view_name = match_data[:view]
 
-            db_name = @options[:db_name]
-            # Check if the view exists
-            check_sql = "SELECT * FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id WHERE type = 'V' AND o.name = '#{view_name}' AND s.name = '#{schema_name}'"
-            result = db_connection.fetch(check_sql).all
+              db_name = @options[:db_name]
+              # Check if the view exists
+              check_sql = "SELECT * FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id WHERE type = 'V' AND o.name = '#{view_name}' AND s.name = '#{schema_name}'"
+              result = db_connection.fetch(check_sql).all
 
-            if result.nil? || result.empty?
-              puts "  >> Create new view.\n\n"
-              db_connection.run(command)
-            else
-              alter_command = command.gsub(/CREATE\s+VIEW/i, 'ALTER VIEW')
-              puts "  >> Update existing view.\n\n"
-              db_connection.run(alter_command)
+              # Set ANSI_NULLS, ANSI_WARNINGS ON
+              db_connection.execute("SET ANSI_NULLS ON;")
+              db_connection.execute("SET ANSI_WARNINGS ON;")
+
+              if result.nil? || result.empty?
+                puts "  >> Create new view.\n\n"
+                db_connection.run(command)
+              else
+                alter_command = command.gsub(/CREATE\s+VIEW/i, 'ALTER VIEW')
+                puts "  >> Update existing view.\n\n"
+                db_connection.run(alter_command)
+              end
+
+
             end
-
-
           end
         end
       end
