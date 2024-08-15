@@ -94,6 +94,7 @@ module Schematic
             db.extension :identifier_mangling
             db.identifier_input_method = nil
             db.identifier_output_method = nil
+            db.run "SET ANSI_NULLS ON"
           end
         end
     end
