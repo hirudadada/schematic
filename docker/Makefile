@@ -24,6 +24,19 @@ shell.base.rel:
 image.base.rel:
 	@$(MAKE) -C build/rel image
 
+build.base.cr:
+	@$(MAKE) -C build/cr build
+
+push.base.cr:
+	@$(MAKE) -C build/cr push
+
+shell.base.cr:
+	@$(MAKE) -C build/cr shell
+
+image.base.cr:
+	@$(MAKE) -C build/cr image
+
+
 prune:
 	@${CONTAINER_CLI} image prune -f
 clean: prune
