@@ -24,17 +24,17 @@ shell.base.rel:
 image.base.rel:
 	@$(MAKE) -C build/rel image
 
-build.base.cr:
-	@$(MAKE) -C build/cr build
+build.base.rc:
+	@$(MAKE) -C build/rc build
 
-push.base.cr:
-	@$(MAKE) -C build/cr push
+push.base.rc:
+	@$(MAKE) -C build/rc push
 
-shell.base.cr:
-	@$(MAKE) -C build/cr shell
+shell.base.rc:
+	@$(MAKE) -C build/rc shell
 
-image.base.cr:
-	@$(MAKE) -C build/cr image
+image.base.rc:
+	@$(MAKE) -C build/rc image
 
 
 prune:
