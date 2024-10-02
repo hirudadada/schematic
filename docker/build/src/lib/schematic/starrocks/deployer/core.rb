@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+module Schematic
+  module Starrocks
+    class DeploymentError < StandardError; end
+
+    class Deployer
+      attr_reader :options
+
+      def initialize(opts = {})
+        @options = default_options.merge(opts)
+        set_database_options
+      end
+
+      def deploy_resource(resource)
+        execute_sql(resource.sql, resource.name)
+      end
+
+      def work_dir
+        @work_dir ||= options[:work_dir]
+      end
+
+      def deployment_dir
+        @deployment_dir ||= init_deployment_dir
+      end
+
+      def template_dir
+        @deployment_dir ||= init_template_dir
+      end
+
+      protected
+
+      def default_options
+        {
+          work_dir: Dir.pwd,
+          deployment_dir: File.join('db', 'starrocks'),
+          template_dir: File.join('templates', 'starrocks')
+        }
+      end
+
+      def init_deployment_dir
+        dir = Pathname.new(options[:deployment_dir])
+        dir.absolute? ? dir.to_s : File.join(work_dir, dir.to_s)
+      end
+
+      def init_template_dir
+        dir = Pathname.new(options[:template_dir])
+        dir.absolute? ? dir.to_s : File.join(work_dir, dir.to_s)
+      end
+
+      def set_database_options
+        @options[:db_type] = ENV['DB_TYPE']
+        @options[:db_adapter] = ENV['DB_ADAPTER']
+        @options[:db_host] = ENV['DB_HOST']
+        @options[:db_name] = ENV['DB_NAME']
+        @options[:db_user] = ENV['DB_USER']
+        @options[:db_password] = decrypt_db_password
+        @options[:database_url] = ENV['DATABASE_URL']
+      end
+
+      def decrypt_db_password
+        encrypted_password = ENV['DB_PASSWORD_ENCRYPTED']
+        return ENV['DB_PASSWORD'] if encrypted_password.nil? || encrypted_password.empty?
+
+        Schematic::Cipher.new.decrypt(encrypted_password)
+      end
+
+      def db_connection
+        @db_connection ||= Sequel.connect(
+          options[:database_url],
+          user: options[:db_user],
+          password: options[:db_password]
+        ).tap do |db|
+            if options[:db_type] == 'mssql'
+              db.extension :identifier_mangling
+              db.identifier_input_method = nil
+              db.identifier_output_method = nil
+              db.run "SET ANSI_NULLS ON"
+            end
+          end
+      end
+
+      def execute_sql(sql, name)
+        begin
+          db_connection.query(sql)
+          puts "Deployed #{name}"
+        rescue Mysql2::Error => e
+          puts "Error deploying #{name}: #{e.message}"
+        end
+      end
+    end
+  end
+end
