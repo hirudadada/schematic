@@ -1,0 +1,78 @@
+# Version control directories
+.git/
+
+# Ignore docker related files and directories
+# Dockerfile
+# Dockerfile.*
+docker-compose*.yml
+# docker/
+
+# Ignore CI/CD specific files
+.gitignore
+
+# Development and build artifacts
+.bundle
+vendor/
+**/out
+.yardoc
+_yardoc
+coverage/
+doc/
+pkg/
+tmp/
+log/
+
+# Ignore development-specific files
+**/*.env
+**/*.env.*
+.bash_history
+
+# Ignore specific directories
+**/deploy/
+**/make.env/
+gitops/
+.cipher
+!.cipher/*.pub
+*.local*
+**/*.local*
+
+# Ignore scripts that may contain sensitive information
+**/scripts*/
+*.sh
+
+# Ignore dependency directories
+node_modules/
+
+# Ignore compiled assets
+public/assets/
+public/packs/
+public/packs-test/
+
+# Ignore database schema dumps or seed files
+db/*.sql
+db/schema.rb
+db/seeds.rb
+
+# Ignore app configuration files that are not needed in the Docker image
+config/*.yml
+config/*.yaml
+config/initializers/*.rb
+config/environments/development.rb
+config/environments/test.rb
+
+# Ignore test, spec, and development config files
+test/
+spec/
+
+# Ignore build and Makefiles
+Makefile
+**/Makefile
+
+# Non-essential files
+*.ignore
+.DS_Store
+.bash_history
+README.md
+LICENSE
+*.md
+
