@@ -1,4 +1,13 @@
+ENV ?=.local
+export ENV
+
 include Makefile.env
+
+.PHONY: print.env
+
+print.env:
+	@echo "Environment variables in make process:"
+	@$(foreach V,$(sort $(.VARIABLES)), $(if $(filter-out environment% default automatic,$(origin $V)),$(warning $V=$($V) )))
 
 build.base.dev:
 	@$(MAKE) -C build/dev build
@@ -6,11 +15,11 @@ build.base.dev:
 push.base.dev:
 	@$(MAKE) -C build/dev push
 
-shell.base.dev:
-	@$(MAKE) -C build/dev shell
-
 image.base.dev:
 	@$(MAKE) -C build/dev image
+
+run.base.dev:
+	@$(MAKE) -C build/dev run
 
 build.base.rel:
 	@$(MAKE) -C build/rel build
@@ -18,8 +27,8 @@ build.base.rel:
 push.base.rel:
 	@$(MAKE) -C build/rel push
 
-shell.base.rel:
-	@$(MAKE) -C build/rel shell
+run.base.rel:
+	@$(MAKE) -C build/rel run
 
 image.base.rel:
 	@$(MAKE) -C build/rel image
@@ -30,8 +39,8 @@ build.base.rc:
 push.base.rc:
 	@$(MAKE) -C build/rc push
 
-shell.base.rc:
-	@$(MAKE) -C build/rc shell
+run.base.rc:
+	@$(MAKE) -C build/rc run
 
 image.base.rc:
 	@$(MAKE) -C build/rc image
@@ -49,6 +58,8 @@ up:
 	@${CONTAINER_CLI} compose up -d
 down:
 	@${CONTAINER_CLI} compose down
+down.rm:
+	@${CONTAINER_CLI} compose down --remove-orphans -v
 ps:
 	@${CONTAINER_CLI} compose ps -a
 logs:
@@ -57,7 +68,7 @@ logs:
 up.dev:
 	@${CONTAINER_CLI} compose up dev -d
 shell.dev:
-	@${CONTAINER_CLI} compose exec dev /bin/sh
+	@${CONTAINER_CLI} compose exec -it dev /bin/sh
 restart.dev:
 	@${CONTAINER_CLI} compose restart dev
 logs.dev:
@@ -66,8 +77,12 @@ logs.dev:
 up.dev.db:
 	@${CONTAINER_CLI} compose up dev.db -d
 shell.dev.db:
-	@${CONTAINER_CLI} compose exec dev.db /bin/bash
+	@${CONTAINER_CLI} compose exec -it dev.db /bin/bash
 restart.dev.db:
 	@${CONTAINER_CLI} compose restart dev.db
 logs.dev.db:
 	@${CONTAINER_CLI} compose logs dev.db -f
+
+ifneq ($(ENV),)
+include $(ENV)/Makefile
+endif
