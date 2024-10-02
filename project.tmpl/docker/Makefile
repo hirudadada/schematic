@@ -44,7 +44,7 @@ logs:
 up.dev:
 	@${CONTAINER_CLI} compose up dev -d
 shell.dev:
-	@${CONTAINER_CLI} compose exec dev /bin/sh
+	@${CONTAINER_CLI} compose exec -it dev /bin/sh
 restart.dev:
 	@${CONTAINER_CLI} compose restart dev
 logs.dev:
@@ -53,7 +53,7 @@ logs.dev:
 up.dev.db:
 	@${CONTAINER_CLI} compose up dev.db -d
 shell.dev.db:
-	@${CONTAINER_CLI} compose exec dev.db /bin/bash
+	@${CONTAINER_CLI} compose exec -it dev.db /bin/bash
 restart.dev.db:
 	@${CONTAINER_CLI} compose restart dev.db
 logs.dev.db:

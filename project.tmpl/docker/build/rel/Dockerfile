@@ -24,6 +24,8 @@ COPY . .
 #         gcompat curl make && \
 RUN chown -R 1001:0 ${SCHEMATIC_HOME} && \
     chmod -R g=u ${SCHEMATIC_HOME} && \
+    chown -R 1001:0 ${DB_HOME} && \
+    chmod -R g=u ${DB_HOME} && \
     chown -R 1001:0 ${APP_HOME} && \
     chmod -R g=u ${APP_HOME}
 

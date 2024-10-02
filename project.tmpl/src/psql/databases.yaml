@@ -1,0 +1,10 @@
+---
+defaults: &defaults
+    DB_TYPE: psql
+    DB_ADAPTER: tinytds
+
+databases:
+  - DB_HOST: dev.db
+    DB_NAME: SCHEMATIC_DB
+    DATABASE_URL: tinytds://dev.db/SCHEMATIC_DB?textsize=1024000
+    <<: *defaults

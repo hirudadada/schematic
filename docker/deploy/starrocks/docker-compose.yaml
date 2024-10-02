@@ -1,0 +1,30 @@
+version: "3.6"
+
+services:
+  dev.db:
+    image: ${DEV_DB_IMAGE}
+    user: root
+    ports:
+      - 9030:9030
+      - 8030:8030
+      - 8040:8040
+    environment:
+      DB_NAME: ${DEV_DB_NAME}
+    working_dir: ${DB_HOME}
+    command: /bin/bash -c /data/deploy/entrypoint.sh
+    volumes:
+      - ./.data/dev_${DEV_DB_NAME}_starrocks:/starrocks/data
+      - ./starrocks/scripts:${DB_HOME}
+
+  setup.db:
+    image: ${DEV_DB_IMAGE}
+    depends_on:
+      - dev.db
+    environment:
+      DB_HOST: ${DEV_DB_HOST}
+      DB_NAME: ${DEV_DB_NAME}
+    volumes:
+      - ./starrocks/scripts:${DB_HOME}
+    working_dir: ${DB_HOME}
+    command: /bin/bash -c "${DB_HOME}/create_initial_database.sh"
+
