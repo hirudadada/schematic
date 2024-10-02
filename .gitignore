@@ -13,3 +13,4 @@ log
 .cache
 .cipher
 .data
+*.local*
