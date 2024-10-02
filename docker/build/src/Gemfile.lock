@@ -10,6 +10,7 @@ GEM
     tiny_tds (2.1.6)
 
 PLATFORMS
+  aarch64-linux-musl
   x86_64-linux-musl
 
 DEPENDENCIES

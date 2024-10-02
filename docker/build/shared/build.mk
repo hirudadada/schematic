@@ -1,5 +1,6 @@
 build:
 	@${CONTAINER_CLI} build ../src -f Dockerfile -t ${IMAGE_NAME} \
+		--platform ${PLATFORM} \
 		--build-arg base_image_repo=${BASE_IMAGE_REPO} \
 		--build-arg base_image_tag=${BASE_IMAGE_TAG} \
 		--build-arg app_home=${APP_HOME} \

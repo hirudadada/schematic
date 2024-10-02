@@ -1,0 +1,6 @@
+require 'bundler/setup'
+require 'yaml'
+
+Rake.add_rakelib '../schematic/tasks/shared/'
+Rake.add_rakelib '../schematic/tasks/starrocks/'
+
