@@ -3,7 +3,8 @@
 require 'bundler/setup'
 require 'yaml'
 
-Rake.add_rakelib '../schematic/tasks'
+Rake.add_rakelib '../schematic/tasks/shared/'
+Rake.add_rakelib '../schematic/tasks/mssql/'
 
 def set_env_vars(db)
   ENV['DB_HOST'] = db['DB_HOST']
@@ -17,17 +18,7 @@ def deploy_tasks(app = nil)
   Rake::Task['db:migrate'].reenable
   Rake::Task['db:migrate'].invoke(nil, app)
 
-  ['fn', 'vw', 'sp', 'seed', 'job'].each do |task|
-    Rake::Task["#{task}:deploy"].reenable
-    Rake::Task["#{task}:deploy"].invoke
-  end
-end
-
-def deploy_tasks_nojob(app = nil)
-  Rake::Task['db:migrate'].reenable
-  Rake::Task['db:migrate'].invoke(nil, app)
-
-  ['fn', 'vw', 'sp', 'seed'].each do |task|
+  ['vw', 'fn', 'sp', 'seed', 'job'].each do |task|
     Rake::Task["#{task}:deploy"].reenable
     Rake::Task["#{task}:deploy"].invoke
   end
@@ -57,35 +48,6 @@ task :deploy, [:app] => 'app:env' do |t, args|
   
   ENV['APP'] = args[:app] if args[:app]
   deploy_tasks(args[:app])
-
-  puts "\nDeployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n\n"
-end
-
-
-desc "Run deployment on all target DB (No Jobs)"
-task :deploy_all_nojob, [:app] => 'app:env' do |t, args|
-  databases = YAML.safe_load(File.open("databases.yaml"), aliases: true)
-
-  databases['databases'].each do |db|
-    set_env_vars(db)
-
-    puts "\n\nDeployment started on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n"
-    puts "-" * 80 + "\n"
-
-    ENV['APP'] = args[:app] if args[:app]
-    deploy_tasks_nojob(args[:app])
-
-    puts "\nDeployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n\n"
-  end
-end
-
-desc "Run deployment on individual target DB (No jobs)"
-task :deploy_nojob, [:app] => 'app:env' do |t, args|
-  puts "\n\nDeployment started on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n"
-  puts "-" * 80 + "\n"
-  
-  ENV['APP'] = args[:app] if args[:app]
-  deploy_tasks_nojob(args[:app])
 
   puts "\nDeployment completed on: #{ENV['DB_HOST']}\\#{ENV['DB_NAME']}\n\n"
 end

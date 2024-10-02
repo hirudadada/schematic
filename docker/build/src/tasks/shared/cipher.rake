@@ -1,6 +1,6 @@
 # frozen-string-literal: true
 
-require_relative '../lib/schematic/cipher'
+require_relative '../../lib/schematic/cipher'
 
 namespace :cipher do
   desc "Generate cipher keys"

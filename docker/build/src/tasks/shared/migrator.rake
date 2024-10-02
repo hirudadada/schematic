@@ -1,6 +1,6 @@
 # frozen-string-literal: true
 
-require_relative '../lib/schematic/migrator'
+require_relative '../../lib/schematic/migrator'
 
 namespace :db do
   desc "Test database connection"
