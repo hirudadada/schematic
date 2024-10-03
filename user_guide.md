@@ -1,8 +1,9 @@
-# Intruduction
+# Introduction
 An Rdb schema migration tools that develop on ruby and Supporting SQL Server and MySQL. This help you to deploy you database schema change. stored procedure and create or update agent job on SQL Server formally and solidly.
 
 
-- [Intruduction](#intruduction)
+- [Introduction](#introduction)
+  - [Getting the Schematic Base Code](#getting-the-schematic-base-code)
 - [Functions](#functions)
 - [Development, Testing phases](#development-testing-phases)
 - [How to use it for development?](#how-to-use-it-for-development)
@@ -15,7 +16,14 @@ An Rdb schema migration tools that develop on ruby and Supporting SQL Server and
     - [Run database setup](#run-database-setup)
     - [Start development locally inside dev.app container](#start-development-locally-inside-devapp-container)
     - [Development features](#development-features)
-    - [Database migration create and deploy](#database-migration-create-and-deploy)
+      - [MSSQL Tasks](#mssql-tasks)
+      - [Starrocks Tasks](#starrocks-tasks)
+      - [If you encounter unkown database 'test\_sample' error](#if-you-encounter-unkown-database-test_sample-error)
+  - [Database migration create and deploy](#database-migration-create-and-deploy)
+    - [MSSQL \& PSQL](#mssql--psql)
+  - [Starrocks migration convention](#starrocks-migration-convention)
+    - [Showing migrations to apply](#showing-migrations-to-apply)
+  - [MSSQL](#mssql)
     - [Stored Procedures create and deploy](#stored-procedures-create-and-deploy)
     - [SQL Server jobs create and deploy](#sql-server-jobs-create-and-deploy)
     - [Deploy all objects for a single DB target](#deploy-all-objects-for-a-single-db-target)
@@ -26,6 +34,16 @@ An Rdb schema migration tools that develop on ruby and Supporting SQL Server and
     - [Sequel Migration script format conversion](#sequel-migration-script-format-conversion)
   - [Project folder structure](#project-folder-structure)
 
+## Getting the Schematic Base Code
+
+First, clone the Schematic repository:
+
+```bash
+# Forked from github.com/larryloi/schematic.git
+
+git clone https://github.com/hirudadada/schematic.git
+cd schematic
+```
 
 # Functions
 - SQL Server, help to create database schema, and create SQL Server Agent jobs
@@ -137,6 +155,8 @@ make shell.dev
 ### Development features
 **List rake tasks avalable**
 Schematic provides a few handy rake tasks out-of-box:
+
+#### MSSQL Tasks
 ```bash
 /home/app # rake -T
 rake app:env                           # Load environment settings
@@ -176,7 +196,70 @@ rake vw:create[name]                   # Create a vies template file
 rake vw:deploy                         # Apply views
 ```
 
-### Database migration create and deploy
+#### Starrocks Tasks
+```bash
+/home/app # rake -T
+rake app:env                                            # Load environment settings
+rake app:version                                        # Show application version
+rake check                                              # Perform configuration checks
+rake cipher:decrypt_env_var[env_var]                    # Decrypt an environment variable
+rake cipher:encrypt[string]                             # Encrypt a string
+rake cipher:encrypt_env_var[env_var]                    # Encrypt an environment variable
+rake cipher:generate_keys                               # Generate cipher keys
+rake db:applied_migration[steps,app]                    # Show a given applied schema migration
+rake db:applied_migrations[app]                         # Show applied schema migrations
+rake db:apply[steps,app]                                # Apply last n migrations
+rake db:clean[app]                                      # Remove migrations
+rake db:create_migration[name]                          # Create a migration file with a timestamp and name
+rake db:migrate[version,app]                            # Run migrations
+rake db:migration_to_apply[steps,app]                   # Show a given schema migration to apply
+rake db:migrations_to_apply[app]                        # Show schema migrations to apply
+rake db:redo[steps,app]                                 # Redo last n migrations
+rake db:reset[app]                                      # Remove migrations and re-run migrations
+rake db:rollback[steps,app]                             # Rollback last n migrations
+rake db:test                                            # Test database connection
+rake gitops:generate                                    # Generate GitOps config
+rake schematic:version                                  # Show Schematic version
+rake version                                            # Show version info
+```
+<!-- # rake starrocks:create_routine_load_config[config_name]  # Create a new Routine Load configuration -->
+
+#### If you encounter unkown database 'test_sample' error
+
+```zsh
+/home/app # rake db:test
+rake aborted!
+Sequel::DatabaseConnectionError: Mysql2::Error: Unknown database 'test_sample'
+/usr/local/bundle/gems/mysql2-0.5.5/lib/mysql2/client.rb:97:in `connect'
+...
+/home/schematic/tasks/shared/migrator.rake:9:in `block (2 levels) in <top (required)>'
+Tasks: TOP => db:test
+(See full trace by running task with --trace)
+```
+
+You could create the db and migration table
+1. Exit the container
+2. Use `make shell.dev.db` to go to the db container
+3. Execute scripts for creating DB or creating migration table
+
+```zsh
+/home/app # exit
+make: *** [Makefile:47: shell.dev] Error 1
+ubuntu@my-dev:~/Code/work/scl/repos/test_sample/docker$ make shell.dev
+shell.dev     shell.dev.db  
+ubuntu@my-dev:~/Code/work/scl/repos/test_sample/docker$ make shell.dev.db
+root@ad2b8e8d2444:/home/starrocks# ls
+create_initial_database.sh  create_schema_migration_table.sh  mysql.sh
+root@ad2b8e8d2444:/home/starrocks# ./create_initial_database.sh 
+Execute creation for the first time.
+DB test_sample is created.
+root@ad2b8e8d2444:/home/starrocks# ./create_schema_migration_table.sh 
+Table schema_migrations is created for test_sample.
+```
+
+## Database migration create and deploy
+
+### MSSQL & PSQL
 After a new project is created, it is most likely to create your database migration before any other development work:
 
 ```bash
@@ -221,6 +304,76 @@ Sequel.migration do
   end
 end
 ```
+
+## Starrocks migration convention
+
+Since sequel gem does not has starrock adaptation, the migration file would require you to provide raw sql. But for details usage. 
+
+```sh
+rake db:create_migration[example_create_table]
+New migration is created: /home/app/db/migrations/20240930040354_example_create_table.rb
+
+rake db:create_migration[example_alter_table]
+New migration is created: /home/app/db/migrations/20240930040459_example_alter_table_add_column_hi.rb
+```
+
+The migration files are then located with path `db/migrations/`
+
+```plaintext
+├── Rakefile
+├── VERSION
+└── db
+    └── migrations
+        ├── 20240930040354_example_create_table.rb
+        └── 20240930040459_example_alter_table_add_column_hi.rb
+```
+
+Here's an example table migration script
+> This is a template, if you are not familiar with ruby's syntax, don't worry, 
+> you could change the block of SQL statements directly to fit your usage, this will work seamlessly, however, 
+> commenting with `-- I'm a comment` is not allowed. 
+
+```ruby
+# frozen_string_literal: true
+
+# db/migrations/20240930040354_example_create_table.rb
+Sequel.migration do
+  up do
+    execute(<<~SQL)
+      CREATE TABLE testing (
+          order_id BIGINT,
+          order_date DATE, 
+          customer_id INT,
+          total_amount DECIMAL(10,2)
+      )
+      ENGINE=olap
+      PRIMARY KEY (order_id, order_date, customer_id)
+      PARTITION BY RANGE (order_date)
+      (
+          PARTITION p201901 VALUES LESS THAN ('2019-02-01'),
+          PARTITION p201902 VALUES LESS THAN ('2019-03-01')
+      )
+      DISTRIBUTED BY HASH(order_id, order_date, customer_id)
+      ORDER BY (order_date, customer_id);
+    SQL
+  end
+
+  down do
+    execute(<<~SQL)
+      DROP TABLE IF EXISTS testing;
+    SQL
+  end
+end
+```
+
+### Showing migrations to apply
+```
+rake db:migrations_to_apply
+--> 20240930040354 : example_create_table
+--> 20240930040459 : example_alter_table_add_column_hi
+```
+
+
 For more detail information. just check the below 
 - Sequel
   https://github.com/jeremyevans/sequel/blob/master/doc/schema_modification.rdoc
@@ -233,11 +386,37 @@ For more detail information. just check the below
 
 **Deploy migration scripts**
 
-Run the below command to deploy your migration scripts
-```bash
-rake db:migrate
+- For MSSQL, nun the below command to deploy your migration scripts
+  ```bash
+  rake db:migrate
+  ```
+- Run migration for Starrocks use `rake db:reset`
+  ```bash
+  rake db:reset
+  ```
+Output: 
+```
+{:target=>0, :app=>nil}
+Completed migration clean of test_sample
+{:target=>nil, :app=>nil}
+Completed migration up of test_sample
+Completed migration reset of test_sample
+```
+```
+StarRocks > describe testing;
++--------------+---------------+------+-------+---------+-------+
+| Field        | Type          | Null | Key   | Default | Extra |
++--------------+---------------+------+-------+---------+-------+
+| order_id     | bigint        | YES  | true  | NULL    |       |
+| order_date   | date          | YES  | true  | NULL    |       |
+| customer_id  | int           | YES  | true  | NULL    |       |
+| total_amount | decimal(10,2) | YES  | false | NULL    |       |
+| hi           | varchar(8)    | YES  | false | NULL    |       |
++--------------+---------------+------+-------+---------+-------+
+5 rows in set (0.00 sec)
 ```
 
+## MSSQL
 
 ### Stored Procedures create and deploy
 **Create Stored Procedures from template**
