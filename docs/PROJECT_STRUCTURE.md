@@ -1,12 +1,11 @@
-## Project folder structure
+# Project Structure
 
-Here is the project folder structure for a sample project:
+Here's the project folder structure for a sample Schematic project:
 
 ```
-test_sample
+your-project-name_your-app-name
 ├── CHANGELOG.md
 ├── README.md
-├── VERSION
 ├── docker
 │   ├── Makefile
 │   ├── Makefile.env
@@ -41,6 +40,7 @@ test_sample
 │       ├── base_image.env
 │       ├── cipher.env
 │       ├── database.env
+│       ├── dev_image.env
 │       ├── docker.env
 │       ├── mssql
 │       │   ├── database.env
