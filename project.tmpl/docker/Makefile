@@ -6,8 +6,8 @@ build.app.dev:
 push.app.dev:
 	@$(MAKE) -C build/dev push
 
-shell.app.dev:
-	@$(MAKE) -C build/dev shell
+run.app.dev:
+	@$(MAKE) -C build/dev run
 
 image.app.dev:
 	@$(MAKE) -C build/dev image
@@ -18,8 +18,8 @@ build.app.rel:
 push.app.rel:
 	@$(MAKE) -C build/rel push
 
-shell.app.rel:
-	@$(MAKE) -C build/rel shell
+run.app.rel:
+	@$(MAKE) -C build/rel run
 
 image.app.rel:
 	@$(MAKE) -C build/rel image
