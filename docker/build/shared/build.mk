@@ -24,7 +24,7 @@ build:
 push:
 	@${CONTAINER_CLI} push ${IMAGE_REGISTRY_NAME}
 
-shell:
+run:
 	@${CONTAINER_CLI} run -it --rm ${IMAGE_REGISTRY_NAME} /bin/sh
 
 image:
