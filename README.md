@@ -7,7 +7,7 @@ Schematic is a tool to bootstrap a project that develops and manages schema migr
 First, clone Schematic:
 
 ```
-git clone https://github.com/larryloi/schematic
+git clone https://github.com/hirudadada/schematic
 cd schematic
 ```
 
@@ -24,40 +24,58 @@ make create.project.psql project=test app=sample target=/root/to/projects
 make create.project.starrocks project=test app=sample target=/root/to/projects
 ```
 
-Then, set the database password to the environment variable, based on the database type:
+## Starting the Project Containers
 
-```
-## MSSQL
-vi /docker/make.env/mssql/secret.env
+1. Open the new project folder (`/path/to/target/directory/your-project-name_your-app-name`).
+2. Set the database password by editing the `secret.env` file under `docker/make.env/mssql/secret.env` (or `psql/secret.env`, `starrocks/secret.env` depending on your database).
+3. Start the containers:
 
-## PostgreSQL
-vi /docker/make.env/psql/secret.env
-
-## Starrocks
-vi /docker/make.env/starrocks/secret.env
+```bash
+cd docker
 ```
 
-Now the project can be started:
+First run: 
 
+```bash
+cd docker && make build.app.dev
 ```
-cd /root/to/projects/test_sample/docker
+
+Starting the container
+
+```bash
 make up
 ```
 
-If MSSQL or PostgreSQL database is used, the development database needs to be created before any development:
+## Setting up the Database
 
-```
+If you're using SQL Server or PostgreSQL, you need to create the development database before proceeding:
+
+```bash
 make shell.dev.db
+```
 
-# Now you get into the shell of the database container
+Now you're in the shell of the database container
+
+```bash
 ./setup-db.sh
+```
+
+> [!NOTE] if you're using StarRocks
+> run these instead
+> ```bash
+> ./create_initial_database.sh
+> ./create_migration_table.sh
+> ```
+
+Then exit the DB container
+```bash
 exit
 ```
 
-Last, you can get into the dev container to start your development locally.
+Finally, you can start your development locally inside the `dev.app` container:
 
-```
-make shell.dev
+```bash
+make shell.app.dev
 ```
 
 ## Development features
@@ -159,6 +177,11 @@ make up
 
 To build the project image for QA after development is done:
 
+1. Update VERSION (`/path/to/target/directory/your-project-name_your-app-name`), 
+   (or build number as well).
+2. Build image.
+3. Push image.
+
 ```
 make build.app.dev
 make push.app.dev
@@ -233,12 +256,3 @@ test_sample
     │   └── general.yaml
     └── stored_procedures
 ```
-
-The key changes made are:
-
-1. Added instructions for setting up a Starrocks project.
-2. Updated the instructions for setting the database password based on the database type (MSSQL, PostgreSQL, or Starrocks).
-3. Mentioned that the `secret.env` file for Starrocks is located under `docker/make.env/starrocks/secret.env`.
-4. Added a `psql` and `starrocks` folder under `docker/make.env` for storing PostgreSQL and Starrocks database configurations and secrets, respectively.
-
-Please review the changes and let me know if you need any further modifications.

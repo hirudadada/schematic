@@ -1,7 +1,6 @@
 # Introduction
 An Rdb schema migration tools that develop on ruby and Supporting SQL Server and MySQL. This help you to deploy you database schema change. stored procedure and create or update agent job on SQL Server formally and solidly.
 
-
 - [Introduction](#introduction)
   - [Getting the Schematic Base Code](#getting-the-schematic-base-code)
 - [Functions](#functions)
@@ -39,8 +38,6 @@ An Rdb schema migration tools that develop on ruby and Supporting SQL Server and
 First, clone the Schematic repository:
 
 ```bash
-# Forked from github.com/larryloi/schematic.git
-
 git clone https://github.com/hirudadada/schematic.git
 cd schematic
 ```
@@ -62,7 +59,7 @@ The schematic base that contains core logic for schema, sp, jobs deployment but 
 **Get it by command**
 ```bash
 cd /home/ds/_Devlopment/temp
-git clone https://github.com/larryloi/schematic.git
+git clone https://github.com/hirudadada/schematic.git
 ```
 **Or use VScode**
  1. Open Remote Explorer and connect Remote Host
@@ -79,16 +76,16 @@ git clone https://github.com/larryloi/schematic.git
     ```bash
     docker login quay.io
 
-    docker pull quay.io/larryloi/schematic_base:latest
+    docker pull quay.io/hirudadada/schematic_base:latest
     
-    docker pull quay.io/larryloi/schematic_base:0.2.5-rel.0
+    docker pull quay.io/hirudadada/schematic_base:0.2.5-rel.0
     ```
 **The below schematic-base you will get**
 ```bash
 ubt23 :: temp/schematic/docker ‹main› » docker images
 REPOSITORY                        TAG                     IMAGE ID       CREATED        SIZE
-quay.io/larryloi/schematic_base   0.2.5-rel               7a4144e23fd4   18 minutes ago   137MB
-quay.io/larryloi/schematic_base   0.2.5-rel.0             7a4144e23fd4   18 minutes ago   137MB
+quay.io/hirudadada/schematic_base   0.2.5-rel               7a4144e23fd4   18 minutes ago   137MB
+quay.io/hirudadada/schematic_base   0.2.5-rel.0             7a4144e23fd4   18 minutes ago   137MB
 ```
 ### Create development project
 In schematic home path, execute the below command, that creates project template for development. This project folder will be created in parent folder in this case.
@@ -245,15 +242,15 @@ You could create the db and migration table
 ```zsh
 /home/app # exit
 make: *** [Makefile:47: shell.dev] Error 1
-ubuntu@my-dev:~/Code/work/scl/repos/test_sample/docker$ make shell.dev
+user@host:~/path/to/test_sample/docker$ make shell.dev
 shell.dev     shell.dev.db  
-ubuntu@my-dev:~/Code/work/scl/repos/test_sample/docker$ make shell.dev.db
-root@ad2b8e8d2444:/home/starrocks# ls
+user@host:~/path/to/test_sample/docker$ make shell.dev.db
+root@container_id:/home/starrocks# ls
 create_initial_database.sh  create_schema_migration_table.sh  mysql.sh
-root@ad2b8e8d2444:/home/starrocks# ./create_initial_database.sh 
+root@container_id:/home/starrocks# ./create_initial_database.sh 
 Execute creation for the first time.
 DB test_sample is created.
-root@ad2b8e8d2444:/home/starrocks# ./create_schema_migration_table.sh 
+root@container_id:/home/starrocks# ./create_schema_migration_table.sh 
 Table schema_migrations is created for test_sample.
 ```
 
@@ -305,9 +302,9 @@ Sequel.migration do
 end
 ```
 
-## Starrocks migration convention
+## StarRocks migration convention
 
-Since sequel gem does not has starrock adaptation, the migration file would require you to provide raw sql. But for details usage. 
+Since sequel gem does not has StarRocks adaptation, the migration file would require you to provide raw sql. But for details usage. 
 
 ```sh
 rake db:create_migration[example_create_table]
@@ -386,23 +383,11 @@ For more detail information. just check the below
 
 **Deploy migration scripts**
 
-- For MSSQL, nun the below command to deploy your migration scripts
+- Run the below command to deploy your migration scripts
   ```bash
   rake db:migrate
   ```
-- Run migration for Starrocks use `rake db:reset`
-  ```bash
-  rake db:reset
-  ```
-Output: 
-```
-{:target=>0, :app=>nil}
-Completed migration clean of test_sample
-{:target=>nil, :app=>nil}
-Completed migration up of test_sample
-Completed migration reset of test_sample
-```
-```
+```plaintext
 StarRocks > describe testing;
 +--------------+---------------+------+-------+---------+-------+
 | Field        | Type          | Null | Key   | Default | Extra |
@@ -632,7 +617,7 @@ make build.app.rel
 
 Run below command to push your application images to repositry
 ```bash
-docker tag quay.io/larryloi/data-staging_acsc:0.1.0-rel.0 quay.io/larryloi/data-staging_acsc:latest
+docker tag quay.io/hirudadada/data-staging_acsc:0.1.0-rel.0 quay.io/hirudadada/data-staging_acsc:latest
 make push.app.rel
 ```
 

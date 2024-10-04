@@ -1,3 +1,17 @@
+## [0.8.1] (2024-10-02)
+
+* Added support for StarRocks
+* Implemented Makefile handlers for StarRocks project creation
+* Added Docker Compose setup for StarRocks development environment
+* Refactored folder structure to accommodate StarRocks adaptation
+* Added scripts to handle waiting for StarRocks FE and BE to be up during local development
+* Added Rake tasks for creating and deploying StarRocks migrations
+* Added a `psql` and `starrocks` folder under `project.tmpl` for storing PostgreSQL and StarRocks src's rake tasks, respectively.
+* Updated guides and README
+	1. Added instructions for setting up a StarRocks project.
+	2. Updated the instructions for setting the database password based on the database type (MSSQL, PostgreSQL, or StarRocks).
+	3. Mentioned that the `secret.env` file for StarRocks is located under `docker/make.env/starrocks/secret.env`.
+
 ## [0.2.5] (2023-11-05)
 
 	* Properly handled when image is not found when checking image info via make command
