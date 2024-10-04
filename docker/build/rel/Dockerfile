@@ -60,22 +60,22 @@ LABEL org.opencontainers.image.title=${project}-${app} \
     org.opencontainers.image.source=${app_source} \
     org.opencontainers.image.created=${created_at} \
     \
-    org.larryloi.project=${project} \
-    org.larryloi.app=${app} \
-    org.larryloi.app.release=${version}-${release_tag}.${build_number} \
-    org.larryloi.app.version=${version} \
-    org.larryloi.app.release_tag=${release_tag} \
-    org.larryloi.app.build_number=${build_number} \
-    org.larryloi.maintainer=${authors} \
+    org.hirudadada.project=${project} \
+    org.hirudadada.app=${app} \
+    org.hirudadada.app.release=${version}-${release_tag}.${build_number} \
+    org.hirudadada.app.version=${version} \
+    org.hirudadada.app.release_tag=${release_tag} \
+    org.hirudadada.app.build_number=${build_number} \
+    org.hirudadada.maintainer=${authors} \
     \
-    org.larryloi.image.repo=${image_repo} \
-    org.larryloi.image.tag=${image_tag} \
-    org.larryloi.image.name=${image_repo}:${image_tag} \
+    org.hirudadada.image.repo=${image_repo} \
+    org.hirudadada.image.tag=${image_tag} \
+    org.hirudadada.image.name=${image_repo}:${image_tag} \
     \
-    org.larryloi.base_image.repo=${base_image_repo} \
-    org.larryloi.base_image.tag=${base_image_tag} \
-    org.larryloi.base_image.name=${base_image_repo}:${base_image_tag} \
+    org.hirudadada.base_image.repo=${base_image_repo} \
+    org.hirudadada.base_image.tag=${base_image_tag} \
+    org.hirudadada.base_image.name=${base_image_repo}:${base_image_tag} \
     \
-    org.larryloi.ruby.version=${ruby_version} \
-    org.larryloi.alpine.version=${alpine_version}
+    org.hirudadada.ruby.version=${ruby_version} \
+    org.hirudadada.alpine.version=${alpine_version}
 
