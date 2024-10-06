@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+
+module Schematic
+  module Starrocks
+    module Templates
+      class CreateRoutineLoadSqlTemplate < SqlTemplate
+        def initialize
+          super(:create_routine_load)
+        end
+
+        # TODO: refactor to configurable, on init use ENV
+        def create
+          config = ROUTINE_LOAD_CONFIG
+          columns = config[:columns].join(', ')
+          jsonpaths = config[:jsonpaths].map { |path| "\\\"#{path}\\\"" }.join(', ')
+
+          <<~SQL
+            USE #{config[:db]};
+
+            CREATE ROUTINE LOAD #{config[:db]}.#{config[:routine_name]} ON #{config[:table]}
+            COLUMNS TERMINATED BY ',',
+            COLUMNS (#{columns})
+            PROPERTIES
+            (
+              "desired_concurrent_number" = "1",
+              "format" = "json",
+              "jsonpaths" = "[#{jsonpaths}]"
+            )
+            FROM KAFKA
+            (
+              "kafka_broker_list" = "#{config[:kafka_broker_list]}",
+              "kafka_topic" = "#{config[:kafka_topic]}",
+              "property.security.protocol" = "SASL_SSL",
+              "property.sasl.mechanism" = "PLAIN",
+              "property.sasl.username" = "#{config[:sasl_username]}",
+              "property.sasl.password" = "#{config[:sasl_password]}",
+              "property.enable.ssl.certificate.verification" = "false",
+              "confluent.schema.registry.url" = "https://#{config[:sink_username]}:#{config[:sink_password]}@#{config[:schema_registry_url]}",
+              "property.basic.auth.credentials.source" = "USER_INFO",
+              "kafka_partitions" = "0,1,2",
+              "property.kafka_default_offsets" = "OFFSET_BEGINNING"
+            )
+          SQL
+        end
+      end
+    end
+  end
+end
