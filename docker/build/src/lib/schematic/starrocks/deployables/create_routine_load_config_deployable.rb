@@ -4,6 +4,11 @@ module Schematic
   module Starrocks
     module Deployables
       class CreateRoutineLoadConfigDeployable < ConfigDeployable
+        def initialize(name, data)
+          super
+          validate
+        end
+
         # TODO: refactor this config[:routine_name] and name
         def deploy(client)
           client.run("DROP ROUTINE LOAD IF EXISTS #{config[:routine_name]}")
@@ -13,7 +18,17 @@ module Schematic
           puts "Error deploying #{config[:routine_name]}: #{e.message}"
         end
 
-        private
+        protected
+
+        def validate
+          unless data.is_a?(Hash) && data[:name] && data[:task] && data[:config]
+            raise ArgumentError, "Invalid data format for #{self.class.name}: #{data.inspect}"
+          end
+
+          unless task == :create_routine_load
+            raise ArgumentError, "Unsupported task '#{data[:task]}' for #{self.class.name}"
+          end
+        end
 
         def generate_sql
           columns = data[:columns].join(', ')

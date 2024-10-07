@@ -4,6 +4,10 @@ module Schematic
   module Starrocks
     module Deployables
       class ConfigDeployable < DeployableResource
+        def task
+          data[:task].to_sym
+        end
+
         def config
           data[:config]
         end

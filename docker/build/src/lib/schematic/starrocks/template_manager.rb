@@ -110,7 +110,7 @@ module Schematic
 
       def init_materialized_view_dir
         options[:materialized_view_dir] || File.join(resource_dir,
-                                                    'materialized_view')
+                                                    'materialized_views')
       end
 
       def init_resource_dir

@@ -2,10 +2,12 @@
 
 module Schematic
   module Starrocks
-    module Deployable
+    module Deployables
       class DeployableResourceRepository
+        attr_reader :resources
+
         def initialize
-          @resource = {}
+          @resources = {}
         end
 
         def register(task, type, klass)
@@ -19,7 +21,7 @@ module Schematic
 
         def create(task:, type:, name:, data:)
           klass = get(task, type)
-          klass.new(name: name, data: data)
+          klass.new(name, data)
         end
       end
     end

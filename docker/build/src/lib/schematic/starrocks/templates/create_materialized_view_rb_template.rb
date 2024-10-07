@@ -13,8 +13,8 @@ module Schematic
             # frozen_string_literal: true
 
             {
-              name: \'#{sanitize(name)}\', # this is the view name
-              task: :#{task},
+              name: \'#{sanitize(name)}\', # this is the view name, required
+              task: :#{task}, # required
               sql: (<<~SQL)
                 SELECT
                   o.order_id,

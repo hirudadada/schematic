@@ -5,7 +5,7 @@ module Schematic
     module Deployables
       class SqlDeployable < DeployableResource
         def sql
-          data[:sql]
+          data
         end
 
         def deploy(client)

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'inflecto'
-
 module Schematic
   module Starrocks
     module Templates
