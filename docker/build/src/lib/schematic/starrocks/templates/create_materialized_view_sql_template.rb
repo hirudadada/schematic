@@ -4,8 +4,8 @@ module Schematic
   module Starrocks
     module Templates
       class CreateMaterializedViewSqlTemplate < SqlTemplate
-        def initialize
-          super(:create_materialized_view)
+        def initialize(view_name)
+          super(view_name, :create_materialized_view)
         end
 
         def create

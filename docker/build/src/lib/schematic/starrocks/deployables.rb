@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+require_relative 'deployables/deployable_resource'
+require_relative 'deployables/config_deployable'
+require_relative 'deployables/sql_deployable'
+require_relative 'deployables/create_materialized_view_sql_deployable'
+require_relative 'deployables/create_routine_load_config_deployable'
+require_relative 'deployables/create_routine_load_sql_deployable'
+

@@ -2,13 +2,13 @@
 
 module Schematic
   module Starrocks
-    module Templates
-      class SqlTemplate < TemplateResource
-        def initialize(name, task)
-          super(name, task, :sql)
+    module Deployables
+      class SqlDeployable < DeployableResource
+        def sql
+          data[:sql]
         end
 
-        def create
+        def deploy(client)
           raise NotImplementedError, "abstract class #{self.class} has not implemented method '#{__method__}'"
         end
       end

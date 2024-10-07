@@ -4,8 +4,8 @@ module Schematic
   module Starrocks
     module Templates
       class JsonTemplate < TemplateResource
-        def initialize(name)
-          super(name, :json)
+        def initialize(name, task)
+          super(name, task, :json)
         end
 
         def create

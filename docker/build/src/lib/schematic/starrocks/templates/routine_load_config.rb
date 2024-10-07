@@ -19,7 +19,7 @@ module Schematic
       }.freeze
 
       class RoutineLoadConfig
-        attr_reader :name, :db, :table, :routine_name, :columns, :jsonpaths,
+        attr_accessor :name, :db, :table, :routine_name, :columns, :jsonpaths,
           :kafka_broker_list, :kafka_topic, :sasl_username, :sasl_password,
           :schema_registry_url, :sink_username, :sink_password
 

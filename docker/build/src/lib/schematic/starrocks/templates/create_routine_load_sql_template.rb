@@ -4,13 +4,16 @@ module Schematic
   module Starrocks
     module Templates
       class CreateRoutineLoadSqlTemplate < SqlTemplate
-        def initialize
-          super(:create_routine_load)
+        def initialize(routine_name)
+          super(routine_name, :create_routine_load)
         end
 
         # TODO: refactor to configurable, on init use ENV
-        def create
-          config = ROUTINE_LOAD_CONFIG
+        def create # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+          config = RoutineLoadConfig.new(ROUTINE_LOAD_CONFIG)
+          config.routine_name = name
+          config = config.to_hash
+
           columns = config[:columns].join(', ')
           jsonpaths = config[:jsonpaths].map { |path| "\\\"#{path}\\\"" }.join(', ')
 

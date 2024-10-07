@@ -5,24 +5,34 @@ module Schematic
     class Deployment
       attr_reader :deployer, :options
 
+      RESOURCE_TYPES = %i[routine_load materialized_view]
+      TASKS = %i[create]
+
       def initialize(deployer, opts = {})
-        @options = default_options.merge(opts)
+        @options = opts
+        yield @options if block_given?
         @deployer = deployer
       end
 
       def deploy_all
-        deploy_resources(materialize_view_dir, :raw_sql)
-        deploy_resources(routine_load_dir, :config)
+        deploy_routine_load
+        deploy_materialized_view
+      end
+
+      def deploy_routine_load
+        deploy_resources(routine_load_dir, :create_routine_load)
       rescue DeploymentError => e
         puts e.message
       end
 
-      def template_dir
-        @resource_dir ||= init_template_dir
+      def deploy_materialized_view
+        deploy_resources(materialized_view_dir, :create_materialized_view)
+      rescue DeploymentError => e
+        puts e.message
       end
 
-      def materialize_view_dir
-        @materialize_view_dir ||= init_materialize_view_dir
+      def materialized_view_dir
+        @materialized_view_dir ||= init_materialized_view_dir
       end
 
       def routine_load_dir
@@ -31,51 +41,104 @@ module Schematic
 
       protected
 
-      def init_routine_load_dir
-        options[:routine_load_dir] || File.join(deployer.deployment_dir, 'routine_loads')
+      def load(file)
+        Class.new.instance_eval(File.read(file), file)
       end
 
-      def init_template_dir
-        dir = Pathname.new(options[:resource_dir] || default_template_dir)
-        dir.absolute? ? dir.to_s : File.join(deployer.work_dir, dir.to_s)
+      def validate_config_deployable(data)
+        unless %i[name task].each { |key| data.include?(key)}
+          raise ArgumentError, "'name' and 'task' must be specified."
+        end
+
+        unless data.keys.any? { |key| %i[config sql].include?(key) }
+          raise ArgumentError, "Either 'config' or 'sql' must be present."
+        end
       end
 
-      def default_template_dir
-        File.join('templates', 'starrocks')
-      end
-
-      def init_materialize_view_dir
-        options[:materialize_view_dir] || File.join(deployer.deployment_dir,
-          'materialized_view')
-      end
-
-      def deploy_resources(dir, type)
-        Dir.glob(File.join(dir, '*')).each do |file|
+      def deploy_resources(dir, task)
+        Dir.glob(File.join(dir, '*')).sort.each do |file|
           name = File.basename(file, File.extname(file))
           extension = File.extname(file).delete('.')
 
           case extension
           when 'sql'
-            resource = eval(File.read(file))
-            deploy_resource(name, resource, type)
+            resource = File.read(file)
+            name, _ = Utils::FilePath.extract_name_and_task(file)
+            deploy_resource(task, name, resource, :sql)
           when 'json'
             json = JSON.parse(File.read(file))
-            deploy_resource(name, json, type)
+            deploy_resource(task, name, json, :json)
+          when 'rb'
+            data = load(file)
+            deploy_resource(task, name, data, :rb)
           end
         end
       end
 
-      def deploy_resource(name, data, type)
-        resource = case type
-        when :raw_sql
-          RawSqlResource.new(name, data)
-        when :config
-          ConfigResource.new(name, data)
-        end
+      def deploy_resource(task, name, data, format)
+        resource = case format
+                   when :json
+                     data = data.transform_keys(&:to_sym)  # json key is string type
+                     validate_config_deployable(data)
+                     create_config_deployable(task, name, data)
+                   when :sql
+                     data = { sql: data }
+                     create_sql_deployable(task, name, data)
+                   when :rb
+                     validate_config_deployable(data)
+                     create_rb_deployable(task, name, data)
+                   end
 
         deployer.deploy_resource(resource)
-      rescue DeploymentError => e
-        puts e.message
+      # rescue DeploymentError => e
+      #   puts e.message
+      # rescue => e
+      #   puts "Error processing #{name}: #{e.message}"
+      end
+
+      def create_config_deployable(task, name, data)
+        if data[:task] != task.to_s
+          raise ArgumentError, "Unsupported task #{task} does not match data provided. #{data.inspect}"
+        end
+
+        if task == :create_routine_load
+          Deployables::CreateRoutineLoadConfigDeployable.new(name:, data:)
+        # elsif task == :materialized_view
+        #   Deployables::CreateMaterializedViewConfigDeployable.new(name:, config:data)
+        else
+          raise ArgumentError, "Unsupported config task #{task}: #{data.inspect}"
+        end
+      end
+
+      def create_sql_deployable(task, name, data)
+        case task
+        when :create_routine_load
+          Deployables::CreateRoutineLoadSqlDeployable.new(name:, data:)
+        when :create_materialized_view
+          Deployables::CreateMaterializedViewSqlDeployable.new(name:, data:)
+        else
+          raise ArgumentError, "Unkown SQL task #{task}: #{data.inspect}"
+        end
+      end
+
+      def create_rb_deployable(task, name, data)
+        case task
+        when :create_routine_load
+          Deployables::CreateRoutineLoadSqlDeployable.new(name:, data:)
+        when :create_materialized_view
+          Deployables::CreateMaterializedViewSqlDeployable.new(name:, data:)
+        else
+          raise ArgumentError, "Unsupported type: #{data.inspect}"
+        end
+      end
+
+      def init_routine_load_dir
+        options[:routine_load_dir] || File.join(deployer.resource_dir, 'routine_loads')
+      end
+
+      def init_materialized_view_dir
+        options[:materialized_view_dir] || File.join(deployer.resource_dir,
+                                                    'materialized_views')
       end
     end
   end

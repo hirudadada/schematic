@@ -9,23 +9,20 @@ module Schematic
 
       def initialize(opts = {})
         @options = default_options.merge(opts)
+        yield options if block_given?
         set_database_options
       end
 
       def deploy_resource(resource)
-        execute_sql(resource.sql, resource.name)
+        resource.deploy(db_connection)
       end
 
       def work_dir
         @work_dir ||= options[:work_dir]
       end
 
-      def deployment_dir
-        @deployment_dir ||= init_deployment_dir
-      end
-
-      def template_dir
-        @deployment_dir ||= init_template_dir
+      def resource_dir
+        @resource_dir ||= init_resource_dir
       end
 
       protected
@@ -33,18 +30,13 @@ module Schematic
       def default_options
         {
           work_dir: Dir.pwd,
-          deployment_dir: File.join('db', 'starrocks'),
+          resource_dir: File.join('db', 'starrocks'),
           template_dir: File.join('templates', 'starrocks')
         }
       end
 
-      def init_deployment_dir
-        dir = Pathname.new(options[:deployment_dir])
-        dir.absolute? ? dir.to_s : File.join(work_dir, dir.to_s)
-      end
-
-      def init_template_dir
-        dir = Pathname.new(options[:template_dir])
+      def init_resource_dir
+        dir = Pathname.new(options[:resource_dir])
         dir.absolute? ? dir.to_s : File.join(work_dir, dir.to_s)
       end
 
@@ -78,15 +70,6 @@ module Schematic
               db.run "SET ANSI_NULLS ON"
             end
           end
-      end
-
-      def execute_sql(sql, name)
-        begin
-          db_connection.query(sql)
-          puts "Deployed #{name}"
-        rescue Mysql2::Error => e
-          puts "Error deploying #{name}: #{e.message}"
-        end
       end
     end
   end

@@ -4,12 +4,19 @@ module Schematic
   module Starrocks
     module Templates
       class CreateRoutineLoadConfigTemplate < JsonTemplate
-        def initialize
-          super(:create_materialized_view)
+        def initialize(routine_name)
+          super(routine_name, :create_routine_load)
         end
 
         def create
-          ROUTINE_LOAD_CONFIG
+          config = RoutineLoadConfig.new(ROUTINE_LOAD_CONFIG)
+          config.routine_name = name
+
+          {
+            name: name,
+            task: task,
+            config: config.to_hash
+          }
         end
       end
     end

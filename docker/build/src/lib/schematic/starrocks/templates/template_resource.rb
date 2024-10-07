@@ -4,10 +4,11 @@ module Schematic
   module Starrocks
     module Templates
       class TemplateResource
-        attr_reader :name, :type
+        attr_reader :name, :task, :type
 
-        def initialize(name, type)
+        def initialize(name, task, type)
           @name = name
+          @task = task
           @type = type
         end
 
