@@ -71,6 +71,12 @@ make create.project.starrocks project=your-project-name app=your-app-name target
 cd docker
 ```
 
+First run: 
+
+```bash
+cd docker && make build.app.dev
+```
+
 Starting the container
 
 ```bash
@@ -95,7 +101,7 @@ Now you're in the shell of the database container
 > run these instead
 > ```bash
 > ./create_initial_database.sh
-> ./create_migration_table.sh
+> ./create_schema_migration_table.sh
 > ```
 
 Then exit the DB container
