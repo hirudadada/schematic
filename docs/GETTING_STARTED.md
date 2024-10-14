@@ -42,8 +42,8 @@ docker login quay.io
 
 Pull the image
 ```bash
-docker pull quay.io/hirudadada/schematic_base:latest
-docker pull quay.io/hirudadada/schematic_base:0.8.2-rc.1
+docker pull quay.io/larryloi/schematic_base:latest
+docker pull quay.io/larryloi/schematic_base:0.8.3-rc.1
 ```
 
 ## Creating a New Project
