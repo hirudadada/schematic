@@ -39,7 +39,7 @@ module Schematic
             name, _ = Utils::FilePath.extract_name_and_task(file)
             deploy_resource(task, name, resource, :sql)
           when 'json'
-            json = JSON.parse(File.read(file))
+            json = JSON.parse(File.read(file), symbolize_names: true)
             deploy_resource(task, name, json, :json)
           when 'rb'
             data = load(file)
@@ -55,7 +55,8 @@ module Schematic
           task: task,
           type: format,
           name: name,
-          data: format == :json ? data.transform_keys(&:to_sym) : data
+          # data: format == :json ? data.transform_keys(&:to_sym) : data
+          data: data
         )
 
         deployer.deploy_resource(resource)

@@ -9,7 +9,7 @@ module Schematic
         end
 
         def create
-          config = RoutineLoadConfig.new(ROUTINE_LOAD_CONFIG)
+          config = RoutineLoadConfig.new(DEFAULT_ROUTINE_LOAD_CONFIG)
           config.routine_name = name
 
           {

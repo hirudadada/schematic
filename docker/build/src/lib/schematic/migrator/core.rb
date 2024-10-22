@@ -84,19 +84,25 @@ module Schematic
     end
 
     def db_connection
-      @options[:db_connection] ||= 
+      begin
         Sequel.connect(
-          options[:database_url], 
-          user: options[:db_user], 
-          password: options[:db_password]
+          options[:database_url],
+          user: options[:db_user],
+          password: options[:db_password],
+          loggers: [Logger.new($stdout)],
+          log_sql: true
         ).tap do |db|
-          if options[:db_type] == 'mssql'
-            db.extension :identifier_mangling
-            db.identifier_input_method = nil
-            db.identifier_output_method = nil
-            db.run "SET ANSI_NULLS ON"
+            if options[:db_type] == 'mssql'
+              db.extension :identifier_mangling
+              db.identifier_input_method = nil
+              db.identifier_output_method = nil
+              db.run "SET ANSI_NULLS ON"
+            end
           end
-        end
+      rescue Sequel::DatabaseConnectionError => e
+        puts "Failed to connect to the database: #{e.message}"
+        puts e.backtrace.join("\n")
+      end
     end
   end
 end

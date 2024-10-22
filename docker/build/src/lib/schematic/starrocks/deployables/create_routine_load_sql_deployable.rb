@@ -5,11 +5,10 @@ module Schematic
     module Deployables
       class CreateRoutineLoadSqlDeployable < SqlDeployable
         def deploy(client)
-          client.run("DROP ROUTINE LOAD IF EXISTS #{name}")
-          client.run(sql)
+          client.transaction do
+            client.run(sql)
+          end
           puts "Deployed #{name}"
-        rescue Mysql2::Error => e
-          puts "Error deploying #{name}: #{e.message}"
         end
       end
     end

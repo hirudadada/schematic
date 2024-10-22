@@ -3,13 +3,13 @@
 module Schematic
   module Starrocks
     module Templates
-      ROUTINE_LOAD_CONFIG = {
-        "db": "some_db",
-        "table": "some_table",
+      DEFAULT_ROUTINE_LOAD_CONFIG = {
+        "db": "schematic",
+        "table": "testing",
         "routine_name": "some_table_routine",
         "columns": ["uid", "column_1", "column_2", "column_3", "column_4"],
-        "jsonpaths": ["$.uid", "$.column1", "$.column2", "$.column3", "$.column4"],
-        "kafka_broker_list": "kafka_broker_list",
+        "jsonpaths": ["\$.uid", "\$.column1", "\$.column2", "\$.column3", "\$.column4"],
+        "kafka_broker_list": "broker1:9092,broker2:9092,broker3:9092",
         "kafka_topic": "some_topic",
         "sasl_username": "sasl_username",
         "sasl_password": "sasl_password",

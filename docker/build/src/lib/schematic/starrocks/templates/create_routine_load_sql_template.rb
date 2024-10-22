@@ -10,7 +10,9 @@ module Schematic
 
         # TODO: refactor to configurable, on init use ENV
         def create # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
-          config = RoutineLoadConfig.new(ROUTINE_LOAD_CONFIG)
+          config = RoutineLoadConfig.new(DEFAULT_ROUTINE_LOAD_CONFIG)
+
+          # override the default_routine_name
           config.routine_name = name
           config = config.to_hash
 
@@ -20,6 +22,8 @@ module Schematic
           <<~SQL
             USE #{config[:db]};
 
+            STOP ROUTINE LOAD FOR #{config[:db]}.#{config[:routine_name]};
+
             CREATE ROUTINE LOAD #{config[:db]}.#{config[:routine_name]} ON #{config[:table]}
             COLUMNS TERMINATED BY ',',
             COLUMNS (#{columns})
@@ -27,7 +31,7 @@ module Schematic
             (
               "desired_concurrent_number" = "1",
               "format" = "json",
-              "jsonpaths" = "[#{jsonpaths}]"
+              "jsonpaths" = "#{jsonpaths}"
             )
             FROM KAFKA
             (
@@ -42,7 +46,7 @@ module Schematic
               "property.basic.auth.credentials.source" = "USER_INFO",
               "kafka_partitions" = "0,1,2",
               "property.kafka_default_offsets" = "OFFSET_BEGINNING"
-            )
+            );
           SQL
         end
       end

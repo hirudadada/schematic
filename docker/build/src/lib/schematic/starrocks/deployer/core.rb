@@ -13,10 +13,6 @@ module Schematic
         set_database_options
       end
 
-      def deploy_resource(resource)
-        resource.deploy(db_connection)
-      end
-
       def work_dir
         @work_dir ||= options[:work_dir]
       end
@@ -25,7 +21,51 @@ module Schematic
         @resource_dir ||= init_resource_dir
       end
 
+      def deploy_resource(resource)
+        begin
+          resource.deploy(db_connection)
+        rescue Sequel::Error, Mysql2::Error => e
+          error_message = handle_error(e, resource.name)
+          log_error(error_message)
+          log_stack_trace(e)
+        rescue Errno::ENOENT => e
+          error_message = "File not found: #{e.message}"
+          log_error(error_message)
+          log_stack_trace(e)
+        rescue StandardError => e
+          error_message = "An unexpected error occurred: #{e.message}"
+          log_error(error_message)
+          log_stack_trace(e)
+        end
+      end
+
       protected
+
+      def handle_error(e, resource_name)
+        "Sequel Error deploying #{resource_name}: #{e.message}"
+        if e.message.include?("Commands out of sync")
+          handle_commands_out_of_sync_error(e)
+        else
+          "An error occurred: #{e.message}"
+        end
+      end
+
+      def handle_commands_out_of_sync_error(e)
+        # Disconnect the existing connection
+        @db_connection.disconnect if @db_connection
+
+        # Establish a new connection
+        @db_connection = db_connection
+      end
+
+      def log_error(error_message)
+        puts error_message
+      end
+
+      def log_stack_trace(e)
+        puts "Stack trace:"
+        puts e.backtrace.join("\n")
+      end
 
       def default_options
         {
