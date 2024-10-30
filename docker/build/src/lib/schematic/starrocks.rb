@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'inflecto'
+require 'logger'
 
 require_relative 'starrocks/utils'
 require_relative 'starrocks/templates'

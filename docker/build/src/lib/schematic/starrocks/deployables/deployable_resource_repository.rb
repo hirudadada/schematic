@@ -19,9 +19,9 @@ module Schematic
           @resources.dig(task, type) || raise(KeyError, "No resource found for task: #{task}, type: #{type}")
         end
 
-        def create(task:, type:, name:, data:)
+        def create(task:, type:, name:, data:, **options)
           klass = get(task, type)
-          klass.new(name, data)
+          klass.new(name, data, options)
         end
       end
     end

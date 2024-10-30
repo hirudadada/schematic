@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'logger'
+
 module Schematic
   module Starrocks
     class DeploymentError < StandardError; end
@@ -11,6 +13,10 @@ module Schematic
         @options = default_options.merge(opts)
         yield options if block_given?
         set_database_options
+      end
+
+      def logger
+        @logger ||= init_logger
       end
 
       def work_dir
@@ -58,13 +64,19 @@ module Schematic
         @db_connection = db_connection
       end
 
+      def init_logger
+        logger = options[:logger] || Logger.new($stdout)
+        logger.level = options[:log_level] || Logger::INFO
+        logger
+      end
+
       def log_error(error_message)
-        puts error_message
+        logger.error(error_message)
       end
 
       def log_stack_trace(e)
-        puts "Stack trace:"
-        puts e.backtrace.join("\n")
+        logger.error("Stack trace:")
+        logger.error(e.backtrace.join("\n"))
       end
 
       def default_options
@@ -101,7 +113,9 @@ module Schematic
         @db_connection ||= Sequel.connect(
           options[:database_url],
           user: options[:db_user],
-          password: options[:db_password]
+          password: options[:db_password],
+          loggers: [logger],
+          log_sql: options[:log_sql]
         ).tap do |db|
             if options[:db_type] == 'mssql'
               db.extension :identifier_mangling

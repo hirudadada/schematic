@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require 'json'
-
+require 'yaml'
 require_relative 'templates'
 
 module Schematic
@@ -21,19 +20,24 @@ module Schematic
         ERB.new(template).result_with_hash(context)
       end
 
-      def create_template(task, name, format = :sql)
-        dir = task == :create_materialized_view ? materialized_view_dir : routine_load_dir
+      def create_template(task, name, format = :sql, operation = :create)
+        dir = task == :materialized_view ? materialized_view_dir : routine_load_dir
         timestamp = Time.now.strftime('%Y%m%d%H%M%S')
-        filepath = Utils::FilePath.generate_filepath(dir, task, name, format, timestamp)
+        
+        template_name = if task == :routine_load && operation != :create
+                         "#{operation}_#{name}"
+                       else
+                         name
+                       end
+        
+        filepath = Utils::FilePath.generate_filepath(dir, task, template_name, format, timestamp)
 
         begin
           content = case format
                     when :sql
-                      sql_template(task, name)
-                    when :json
-                      JSON.pretty_generate(config_template(task, name))
-                    when :rb
-                      rb_template(task, name)
+                      sql_template(task, name, operation)
+                    when :yaml
+                      config_template(task, name, operation)
                     else
                       raise ArgumentError, "Unsupported type #{format} for #{__method__}"
                     end
@@ -48,33 +52,23 @@ module Schematic
         end
       end
 
-      def sql_template(task, name)
+      def sql_template(task, name, operation = :create)
         case task
-        when :create_materialized_view
+        when :materialized_view
           Templates::CreateMaterializedViewSqlTemplate.new(name).create
-        when :create_routine_load
-          Templates::CreateRoutineLoadSqlTemplate.new(name).create
+        when :routine_load
+          Templates::RoutineLoadSqlTemplate.new(name, operation).create
         else
           raise ArgumentError, "task #{task} is not supported."
         end
       end
 
-      def config_template(task, name)
+      def config_template(task, name, operation = :create)
         case task
-        when :create_routine_load
-          Templates::CreateRoutineLoadConfigTemplate.new(name).create
+        when :routine_load
+          Templates::RoutineLoadConfigTemplate.new(name, operation).create
         else
           raise ArgumentError, "Unknown deployable type: #{task}"
-        end
-      end
-
-      def rb_template(task, name)
-        case task
-        when :create_materialized_view
-          Templates::CreateMaterializedViewRbTemplate.new(name).create
-        # when :create_routine_load
-        else
-          raise ArgumentError, "task #{task} is not supported."
         end
       end
 

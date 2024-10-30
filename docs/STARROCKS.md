@@ -21,7 +21,7 @@ Here's an example of a Starrocks table migration script:
 Sequel.migration do
   up do
     execute(<<~SQL)
-      CREATE TABLE testing (
+      CREATE TABLE example_table (
           order_id BIGINT,
           order_date DATE,
           customer_id INT,
@@ -41,7 +41,7 @@ Sequel.migration do
 
   down do
     execute(<<~SQL)
-      DROP TABLE IF EXISTS testing;
+      DROP TABLE IF EXISTS example_table;
     SQL
   end
 end

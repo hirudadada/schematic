@@ -9,6 +9,7 @@ module Schematic
         end
 
         def deploy(client)
+          logger.debug("Executing SQL: #{sql}") if logger.debug?
           raise NotImplementedError, "abstract class #{self.class} has not implemented method '#{__method__}'"
         end
       end

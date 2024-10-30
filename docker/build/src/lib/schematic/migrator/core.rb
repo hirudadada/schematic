@@ -89,8 +89,6 @@ module Schematic
           options[:database_url],
           user: options[:db_user],
           password: options[:db_password],
-          loggers: [Logger.new($stdout)],
-          log_sql: true
         ).tap do |db|
             if options[:db_type] == 'mssql'
               db.extension :identifier_mangling

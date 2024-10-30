@@ -8,19 +8,24 @@ namespace :starrocks do # rubocop:disable Metrics/BlockLength
     resource_type_plural = "#{resource_type_name}s"
 
     namespace resource_type do
-      desc "Create a #{resource_type_name} template (Available formats: sql, json, rb)"
-      task :create, [:name, :format] do |_, args|
+      desc "Create a #{resource_type_name} template (Available formats: sql, yaml)"
+      task :template, [:operation, :name, :format] do |_, args|
         unless args[:name] && args[:format]
-          abort "Aborted! #{resource_type_name} name and format are required. Usage: rake starrocks:#{resource_type}:create[name,format_type]" # rubocop:disable Layout/LineLength
+          abort "Aborted! #{resource_type_name} name and format are required. Usage: rake starrocks:#{resource_type}:create[name,format_type,operation]" # rubocop:disable Layout/LineLength
         end
 
-        unless %w[sql json rb].include?(args[:format])
-          abort "Aborted! Invalid format '#{args[:format]}'. Available formats: sql, json, rb"
+        unless %w[sql yaml].include?(args[:format])
+          abort "Aborted! Invalid format '#{args[:format]}'. Available formats: sql, yaml"
+        end
+
+        operation = args[:operation] || 'create'
+        unless %w[create pause resume stop alter].include?(operation)
+          abort "Aborted! Invalid operation '#{operation}'. Available operations: create, pause, resume, stop, alter"
         end
 
         deployer = Schematic::Starrocks::Deployer.new
         manager = Schematic::Starrocks::TemplateManager.new(resource_dir: deployer.resource_dir)
-        manager.create_template("create_#{resource_type}".to_sym, args[:name], args[:format].to_sym)
+        manager.create_template(resource_type, args[:name], args[:format].to_sym, operation.to_sym)
       end
 
       desc "Apply #{resource_type_plural}"

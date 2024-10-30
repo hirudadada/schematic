@@ -1,0 +1,38 @@
+---
+:name:
+:db: schematic
+:table: example_table
+:routine_name: ddddddddddd
+:operation: create
+:columns:
+- uid
+- column_1
+- column_2
+- column_3
+- column_4
+:jsonpaths:
+- "$.uid"
+- "$.column1"
+- "$.column2"
+- "$.column3"
+- "$.column4"
+:kafka:
+  :broker_list: broker1:9092,broker2:9092,broker3:9092
+  :topic: some_topic
+  :partitions: '0,1,2'
+  :offset: OFFSET_BEGINNING
+  :security:
+    :protocol: SASL_SSL
+    :mechanism: PLAIN
+    :username: sasl_username
+    :password: sasl_password
+    :ssl_verify: false
+:schema_registry:
+  :url: schema_registry_url
+  :auth:
+    :username: sink_username
+    :password: sink_password
+:properties:
+  :desired_concurrent_number: '1'
+  :max_error_number: '3'
+  :format: json
