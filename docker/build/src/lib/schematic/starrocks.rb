@@ -5,8 +5,9 @@ require 'inflecto'
 require 'logger'
 
 require_relative 'starrocks/utils'
+require_relative 'starrocks/providers'
 require_relative 'starrocks/templates'
-require_relative 'starrocks/deployables'
 require_relative 'starrocks/template_manager'
+require_relative 'starrocks/deployables'
 require_relative 'starrocks/deployer'
-
+require_relative 'starrocks/generator'

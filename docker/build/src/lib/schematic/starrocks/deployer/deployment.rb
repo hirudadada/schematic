@@ -4,14 +4,27 @@ require 'yaml'
 
 module Schematic
   module Starrocks
+    # # Default behavior - hydration enabled
+    # deployment = Deployment.new(deployer, repo)
+    # # Disable hydration
+    # deployment = Deployment.new(deployer, repo, hydrate: false)
+    # # Force configmap generation in development
+    # deployment = Deployment.new(deployer, repo, generate_configmap: true)
+    # # Both options
+    # deployment = Deployment.new(deployer, repo, hydrate: false, generate_configmap: true)
     class Deployment
-      attr_reader :deployer, :resource_repo, :options
+      attr_reader :deployer, :resource_repo, :options, :provider
 
       def initialize(deployer, resource_repo, opts = {})
         @options = opts
         yield @options if block_given?
         @deployer = deployer
         @resource_repo = resource_repo
+        @provider = Providers::RoutineLoadConfigProvider.create
+
+        # Generate configmap if needed
+        generate_configmap if generate_configmap?
+
         register_resource_classes
       end
 
@@ -54,17 +67,23 @@ module Schematic
           name: name,
           data: data,
           logger: deployer.logger,
-          log_level: deployer.options[:log_level]
+          log_level: deployer.options[:log_level],
+          provider: provider
         )
 
         deployer.deploy_resource(resource)
       end
 
       def register_resource_classes
-        # Routine Load
-        resource_repo.register(:routine_load, :sql, Deployables::RoutineLoadSqlDeployable)
-        resource_repo.register(:routine_load, :yaml, Deployables::RoutineLoadConfigDeployable)
-        # Materialized View
+        if hydrate_enabled?
+          # Use hydratable versions by default
+          resource_repo.register(:routine_load, :sql, Deployables::HydratableRoutineLoadSqlDeployable)
+          resource_repo.register(:routine_load, :yaml, Deployables::HydratableRoutineLoadConfigDeployable)
+        else
+          # Use non-hydratable versions if explicitly disabled
+          resource_repo.register(:routine_load, :sql, Deployables::RoutineLoadSqlDeployable)
+          resource_repo.register(:routine_load, :yaml, Deployables::RoutineLoadConfigDeployable)
+        end
         resource_repo.register(:materialized_view, :sql, Deployables::CreateMaterializedViewSqlDeployable)
       end
 
@@ -75,6 +94,26 @@ module Schematic
       def resource_task(resource_type) = resource_type.to_sym
 
       def resource_types = %i[routine_load materialized_view]
+
+      private
+
+      def hydrate_enabled?
+        # Default to true unless explicitly set to false
+        options[:hydrate] != false
+      end
+
+      def generate_configmap?
+        # Generate configmap in when explicitly requested
+        options[:generate_configmap]
+      end
+
+      def generate_configmap
+        generator = Generator::RoutineLoadConfigMap.new(
+          work_dir: deployer.work_dir,
+          gitops_dir: File.join(deployer.work_dir, 'gitops')
+        )
+        generator.generate
+      end
     end
   end
 end

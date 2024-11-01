@@ -1,29 +1,29 @@
 # frozen_string_literal: true
 
-require 'yaml'
-require_relative '../routine_load_config'
-
 module Schematic
   module Starrocks
     module Templates
       class RoutineLoadConfigTemplate < ConfigTemplate
-        def initialize(routine_name, operation = :create)
-          super(routine_name, :routine_load)
+        DEFAULT_COLUMNS = ['uid', 'column1', 'column2', 'column3'].freeze
+        DEFAULT_JSONPATHS = ['$.uid', '$.column1', '$.column2', '$.column3'].freeze
+
+        def initialize(table_name, operation = :create, provider = nil)
           @operation = operation
+          @provider = provider || Providers::RoutineLoadConfigProvider.create
+          @columns = DEFAULT_COLUMNS
+          @jsonpaths = DEFAULT_JSONPATHS
+          @table = table_name
+          super(generate_routine_name(table_name), :routine_load)
         end
 
         def create
-          config = RoutineLoadConfig.new(DEFAULT_ROUTINE_LOAD_CONFIG)
-          config.routine_name = name
-          config.operation = @operation.to_s
-
           case @operation
           when :create
-            create_config(config)
+            create_config
           when :pause, :resume, :stop
-            state_change_config(config)
+            state_change_config
           when :alter
-            alter_config(config)
+            alter_config
           else
             raise ArgumentError, "Unsupported operation: #{@operation}"
           end
@@ -31,26 +31,57 @@ module Schematic
 
         private
 
-        def create_config(config)
-          config.to_yaml
+        def generate_routine_name(table_name)
+          timestamp = Time.now.strftime('%Y%m%d')
+          "#{@provider.db_name}_#{table_name}_routine_load_#{timestamp}"
         end
 
-        def state_change_config(config)
+        def create_config
           {
-            name: name,
-            db: config.db,
-            routine_name: config.routine_name,
-            operation: config.operation
+            db: @provider.db_name,
+            table: @table,
+            routine_name: name,
+            operation: @operation.to_s,
+            columns: @columns,
+            jsonpaths: @jsonpaths,
+            kafka: {
+              broker_list: "{{KAFKA_BROKER_LIST}}",
+              topic: @table,  # Table-specific
+              partitions: "{{KAFKA_PARTITIONS}}",
+              offset: "{{KAFKA_OFFSET}}",
+              security: {
+                protocol: "{{KAFKA_SECURITY_PROTOCOL}}",
+                mechanism: "{{KAFKA_SASL_MECHANISM}}",
+                username: "{{KAFKA_SASL_USERNAME}}",
+                password: "{{KAFKA_SASL_PASSWORD}}",
+                ssl_verify: "{{KAFKA_SSL_VERIFY}}"
+              }
+            },
+            schema_registry: {
+              url: "{{SCHEMA_REGISTRY_URL}}",
+              auth: {
+                username: "{{SCHEMA_REGISTRY_USERNAME}}",
+                password: "{{SCHEMA_REGISTRY_PASSWORD}}"
+              }
+            },
+            properties: @provider.properties
           }.to_yaml
         end
 
-        def alter_config(config)
+        def state_change_config
           {
-            name: name,
-            db: config.db,
-            routine_name: config.routine_name,
-            operation: config.operation,
-            properties: config.properties
+            db: @provider.db_name,
+            routine_name: name,
+            operation: @operation.to_s
+          }.to_yaml
+        end
+
+        def alter_config
+          {
+            db: @provider.db_name,
+            routine_name: name,
+            operation: @operation.to_s,
+            properties: @provider.properties(:alter)
           }.to_yaml
         end
       end

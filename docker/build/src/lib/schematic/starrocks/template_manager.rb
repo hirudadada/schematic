@@ -2,14 +2,16 @@
 
 require 'yaml'
 require_relative 'templates'
+require_relative 'providers/routine_load_config_provider'
 
 module Schematic
   module Starrocks
     class TemplateManager
-      attr_reader :options
+      attr_reader :options, :provider
 
       def initialize(opts = {})
         @options = default_options.merge!(opts)
+        @provider = Providers::RoutineLoadConfigProvider.create
         yield options if block_given?
       end
 
@@ -57,7 +59,7 @@ module Schematic
         when :materialized_view
           Templates::CreateMaterializedViewSqlTemplate.new(name).create
         when :routine_load
-          Templates::RoutineLoadSqlTemplate.new(name, operation).create
+          Templates::RoutineLoadSqlTemplate.new(name, operation, provider).create
         else
           raise ArgumentError, "task #{task} is not supported."
         end
@@ -66,7 +68,7 @@ module Schematic
       def config_template(task, name, operation = :create)
         case task
         when :routine_load
-          Templates::RoutineLoadConfigTemplate.new(name, operation).create
+          Templates::RoutineLoadConfigTemplate.new(name, operation, provider).create
         else
           raise ArgumentError, "Unknown deployable type: #{task}"
         end

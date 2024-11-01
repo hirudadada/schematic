@@ -13,6 +13,7 @@ services:
       - env/cipher.env
       - env/database.env
       - env/secret.env
+      - env/cluster.env
     working_dir: ${APP_HOME}
     volumes:
       - ../../src/${DEV_DB_TYPE}:${APP_HOME}
