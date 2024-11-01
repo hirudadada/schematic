@@ -31,14 +31,18 @@ module Schematic
 
           # Default properties from environment
           @properties = {
-            desired_concurrent_number: fetch_env('ROUTINE_LOAD_CONCURRENT_NUMBER', '1'),
+            desired_concurrent_number: fetch_env('ROUTINE_LOAD_CONCURRENT_NUMBER', '3'),
             format: 'json',
-            strip_outer_array: fetch_env('ROUTINE_LOAD_STRIP_OUTER_ARRAY', 'false'),
-            strict_mode: fetch_env('ROUTINE_LOAD_STRICT_MODE', 'true'),
+            # strip_outer_array: fetch_env('ROUTINE_LOAD_STRIP_OUTER_ARRAY', 'false'),
+            # strict_mode: fetch_env('ROUTINE_LOAD_STRICT_MODE', 'true'),
+            max_batch_interval: fetch_env('ROUTINE_LOAD_MAX_BATCH_INTERVAL', '10'),
             max_batch_rows: fetch_env('ROUTINE_LOAD_MAX_BATCH_ROWS', '200000'),
-            max_batch_size: fetch_env('ROUTINE_LOAD_MAX_BATCH_SIZE', '104857600'),
+            # max_batch_size: fetch_env('ROUTINE_LOAD_MAX_BATCH_SIZE', '104857600'),
             max_error_number: fetch_env('ROUTINE_LOAD_MAX_ERROR_NUMBER', '1000'),
-            timezone: fetch_env('ROUTINE_LOAD_TIMEZONE', 'Asia/Macau')
+            max_filter_ratio: fetch_env('ROUTINE_LOAD_MAX_FILTER_RATIO', '1.0'),
+            task_consume_second: fetch_env('ROUTINE_LOAD_TASK_CONSUME_SECOND', '15'),
+            task_timeout_second: fetch_env('ROUTINE_LOAD_TASK_TIMEOUT_SECOND', '60'),
+            # timezone: fetch_env('ROUTINE_LOAD_TIMEZONE', 'Asia/Macau')
           }
 
           validate!
