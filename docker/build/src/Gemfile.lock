@@ -93,8 +93,8 @@ GEM
 
 PLATFORMS
   aarch64-linux-musl
-  ruby
   x86_64-linux-musl
+  ruby
 
 DEPENDENCIES
   byebug

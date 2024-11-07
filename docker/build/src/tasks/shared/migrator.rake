@@ -1,5 +1,6 @@
 # frozen-string-literal: true
 
+require_relative '../../lib/schematic/database'
 require_relative '../../lib/schematic/migrator'
 
 namespace :db do

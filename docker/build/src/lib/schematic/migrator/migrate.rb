@@ -54,6 +54,7 @@ module Schematic
     def run_migrator(**opts)
       puts **opts
       migration_table = "schema_migrations_#{opts[:app]}" unless opts[:app].nil? 
+
       Sequel::Migrator.run(
         db_connection,
         migration_dir,

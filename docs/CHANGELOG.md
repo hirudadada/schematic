@@ -1,3 +1,20 @@
+## [0.8.4] (2024-11-07)
+
+* Improved database setup and initialization
+  - Added base database setup module for all databases
+  - Added database-specific setup extensions
+  - Moved table creation to appropriate modules
+  - Improved initialization flow
+* Enhanced StarRocks Routine Load
+  - Moved routine load migrations table setup to Database::StarRocks::Setup
+  - Improved migration strategy table handling
+  - Added consistent database initialization
+  - Fixed deployment error handling
+* Updated documentation
+  - Added detailed deployment flow documentation
+  - Updated project structure guide
+  - Added database setup information
+
 ## [0.8.2] (2024-10-31)
 
 * Added StarRocks Routine Load feature

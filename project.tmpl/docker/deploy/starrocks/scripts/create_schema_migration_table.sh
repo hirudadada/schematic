@@ -21,4 +21,4 @@ END_SQL
 
 mysql -P 9030 -h ${db_host} -u root -e "$SQL_STMT"
 
-echo "Table schema_migrations is created for ${db_name}."
+echo "Schema migration table is created."

@@ -108,3 +108,19 @@ rake starrocks:routine_load:deploy
 - Initial version: Migration-based deployment system
 - Added routine load state tracking
 - Added migration tracking table
+
+## [0.8.3] (2024-11-07)
+
+* Added Database Setup Module
+  - Added base database setup functionality
+  - Added StarRocks-specific table creation
+  - Moved routine load migrations table setup
+  - Improved initialization flow
+* Enhanced Migration Strategy
+  - Moved table creation to setup module
+  - Improved error handling
+  - Added consistent table initialization
+* Updated Documentation
+  - Added database setup details
+  - Updated deployment flow documentation
+  - Added initialization information

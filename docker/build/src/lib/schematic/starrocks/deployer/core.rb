@@ -12,18 +12,15 @@ module Schematic
         def initialize(opts = {})
           @options = default_options.merge!(opts)
           yield @options if block_given?
+          ensure_database_setup
         end
 
         def deploy_resource(resource)
           logger.info("Deploying resource...")
           resource.deploy(client)
           logger.info("Resource deployed successfully")
-        rescue AnalyzingError => e
-          logger.error("Error analyzing resource: #{e.message}")
-          raise
-        rescue DeploymentError => e
-          logger.error("Error deploying resource: #{e.message}")
-          logger.error(e.backtrace.join("\n"))
+        rescue StandardError => e
+          logger.error("An unexpected error occurred: #{e.message}")
           raise
         end
 
@@ -95,6 +92,10 @@ module Schematic
             sql_log_level: :debug,
             log_level: Logger::INFO
           }
+        end
+
+        def ensure_database_setup
+          Database::Setup.ensure_migrations_table(client)
         end
       end
     end

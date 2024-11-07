@@ -6,7 +6,7 @@ module Schematic
       module Strategies
         class MigrationStrategy < RoutineLoadDeploymentStrategy
           def execute(client, statements, load_info)
-            # Ensure migrations table exists
+            # Ensure migrations table exists if we're using migration strategy
             States::MigrationTracker.ensure_migrations_table(client)
 
             # Extract migration info from filename

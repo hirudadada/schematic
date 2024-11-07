@@ -14,6 +14,7 @@ module Schematic
       on_init
       set_default_options
       set_default_values
+      ensure_database_setup
     end
 
     def default_migration_dir
@@ -101,6 +102,10 @@ module Schematic
         puts "Failed to connect to the database: #{e.message}"
         puts e.backtrace.join("\n")
       end
+    end
+
+    def ensure_database_setup
+      Database::Setup.ensure_migrations_table(db_connection)
     end
   end
 end

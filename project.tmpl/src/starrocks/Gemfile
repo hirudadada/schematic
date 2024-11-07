@@ -7,14 +7,3 @@ gem "sequel", "~> 5.73"
 gem 'dotenv', '~> 2.8'
 gem 'inflecto'
 gem 'dry-types', '~> 1.7.1'
-
-group :development do
-  gem 'byebug'
-  gem 'debug', '>= 1.0.0'
-  gem 'pry'
-  gem 'pry-doc'
-  gem 'rubocop'
-  gem 'rubocop-rspec'
-  gem 'rubocop-minitest'
-  gem 'ruby-lsp', require: false
-end

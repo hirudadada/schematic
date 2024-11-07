@@ -1,34 +1,160 @@
 # Schematic
 
-Schematic is a tool to bootstrap a project that develops and manages schema migration and jobs for a database.
+A database deployment and management tool supporting multiple databases and deployment strategies.
 
-## Supported Databases
+## Features
 
-- SQL Server
-- PostgreSQL
-- StarRocks
-  - Schema migrations
-  - Routine Load management with migration-style versioning
-  - Type-safe configuration handling
+### Database Support
+- **MSSQL**
+  - Stored Procedures deployment
+  - SQL Server Jobs management
+  - Migration tracking
+- **StarRocks**
+  - Routine Load management
+  - Migration-based deployments
+  - Direct mode operations
 
-## Main Features
+### Core Features
+- Migration-based deployment system
+- Type-safe configurations
+- Secure credential management
+- GitOps integration
+- Multiple deployment strategies
+- Environment-specific configurations
 
-- Create and manage database schemas
-- Create and deploy SQL Server Agent jobs
-- Generate GitOps configurations
-- Encrypt and decrypt sensitive credentials
-- Type-safe configuration management
-- Migration-style deployment for StarRocks Routine Load
-- Kafka and Schema Registry integration
+## Quick Start
 
-## Getting Started
+### Project Creation
+```bash
+# Create new StarRocks project
+make create.project.starrocks project=test app=sample target=../
 
-For detailed instructions on setting up a new Schematic project, refer to the [GETTING_STARTED.md](docs/GETTING_STARTED.md) file.
+# Create new MSSQL project
+make create.project.mssql project=test app=sample target=../
+
+# Generate database migration
+rake db:create_migration[create_users]
+
+# Deploy database changes
+rake db:migrate
+```
+
+### Project Structure
+After creation, your project will have:
+```
+test/                          # Project root
+├── docker/                    # Docker configurations
+│   ├── build/                # Build configurations
+│   ├── deploy/               # Deployment configurations
+│   │   └── env/             # Environment files
+│   └── make.env/            # Make environment files
+└── src/                      # Source code
+    ├── db/                   # Database files
+    │   └── starrocks/       # StarRocks specific
+    │       └── routine_loads/# Routine Load configs
+    ├── gitops/              # Generated GitOps configs
+    └── Gemfile              # Ruby dependencies
+```
+
+### MSSQL Features
+```bash
+# Generate stored procedure
+rake sp:create[user_management]
+
+# Deploy stored procedures
+rake sp:deploy
+
+# Create job
+rake job:create[daily_cleanup]
+
+# Deploy jobs
+rake job:deploy
+```
+
+### StarRocks Features
+```bash
+# Generate routine load migration
+rake starrocks:routine_load:generate[users,create,yaml]
+
+# Deploy routine loads
+rake starrocks:routine_load:deploy
+
+# Check status
+rake starrocks:routine_load:status
+```
+
+### GitOps Configuration
+```bash
+# Generate GitOps configs
+rake gitops:generate
+```
+
+## Development
+
+### Environment Setup
+```bash
+# Start development environment
+make up
+
+# Access development shell
+make shell
+
+# Run tests
+make test
+```
+
+### Building and Deployment
+```bash
+# Build release image
+make build.app.rel
+
+# Push release image
+make push.app.rel
+```
 
 ## Documentation
 
-- [Getting Started Guide](docs/GETTING_STARTED.md)
-- [Development Workflow](docs/DEVELOPMENT.md)
-- [Project Structure](docs/PROJECT_STRUCTURE.md)
+- [Development Guide](docs/DEVELOPMENT.md)
 - [StarRocks Guide](docs/STARROCKS.md)
+- [Project Structure](docs/PROJECT_STRUCTURE.md)
 - [Changelog](docs/CHANGELOG.md)
+
+## Configuration
+
+### Environment Variables
+```env
+# Database Connection
+DB_HOST=localhost
+DB_PORT=1433  # MSSQL default
+DB_USER=sa
+DB_PASSWORD=
+DB_NAME=schematic
+
+# Deployment Settings
+MIGRATION_MODE=true
+HYDRATE=true
+LOG_LEVEL=1  # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
+```
+
+### Security
+```bash
+# Generate cipher keys
+rake cipher:generate_keys
+
+# Encrypt sensitive data
+rake cipher:encrypt[mypassword]
+```
+
+## Project Structure
+```
+project/
+├── db/
+│   ├── migrations/           # Database migrations
+│   ├── mssql/               # MSSQL specific
+│   │   ├── jobs/           # SQL Server Jobs
+│   │   └── procedures/     # Stored Procedures
+│   └── starrocks/          # StarRocks specific
+│       └── routine_loads/  # Routine Load configs
+├── gitops/                 # Generated GitOps configs
+└── docker/                # Docker configurations
+```

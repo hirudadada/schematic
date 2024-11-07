@@ -43,9 +43,9 @@ if ! $success; then
   exit 1
 fi
 
-# Create required tables
-echo "Creating schema migrations table..."
-./create_schema_migration_table.sh
-
-echo "Creating routine load migrations table..."
-./create_routine_load_migrations_table.sh
+# # Create required tables
+# echo "Creating schema migrations table..."
+# ./create_schema_migration_table.sh
+#
+# echo "Creating routine load migrations table..."
+# ./create_routine_load_migrations_table.sh
