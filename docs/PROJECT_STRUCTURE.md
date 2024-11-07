@@ -60,3 +60,30 @@ your-project-name_your-app-name
     │   └── general.yaml
     └── stored_procedures
 ```
+
+For StarRocks projects, additional structures include:
+```
+your-project-name_your-app-name
+└── src
+    └── starrocks
+        └── db
+            ├── migrations/           # Database migrations
+            └── routine_loads/        # Routine Load migrations
+                └── migrations/       # Migration-style routine loads
+                    ├── YYYYMMDDHHMMSS_create_table_routine_load.yaml
+                    ├── YYYYMMDDHHMMSS_alter_table_routine_load.yaml
+                    └── YYYYMMDDHHMMSS_pause_table_routine_load.yaml
+
+docker
+├── deploy
+│   └── starrocks
+│       └── scripts
+│           ├── create_initial_database.sh
+│           ├── create_schema_migration_table.sh
+│           └── create_routine_load_migrations_table.sh
+└── make.env
+    └── starrocks
+        ├── database.env
+        ├── secret.env
+        └── cluster.env             # Kafka and Schema Registry configuration
+```

@@ -42,3 +42,10 @@ if ! $success; then
   echo "Maximum retries reached. Failed to create database ${db_name}."
   exit 1
 fi
+
+# Create required tables
+echo "Creating schema migrations table..."
+./create_schema_migration_table.sh
+
+echo "Creating routine load migrations table..."
+./create_routine_load_migrations_table.sh

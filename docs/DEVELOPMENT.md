@@ -86,6 +86,9 @@ rake db:test                                            # Test database connecti
 rake gitops:generate                                    # Generate GitOps config
 rake schematic:version                                  # Show Schematic version
 rake version                                            # Show version info
+rake starrocks:routine_load:generate[table,operation,format]  # Generate a new routine load migration
+rake starrocks:routine_load:deploy[migration_mode]           # Deploy routine loads (migration mode by default)
+rake starrocks:routine_load:status                          # Show routine load status and migration history
 ```
 
 ## Creating Database Migrations
@@ -202,4 +205,29 @@ Schematic provides a Rake task to convert SQL migration scripts to the Sequel mi
 ```bash
 rake sqlsequel:create     # Create a source SQL format file for conversion
 rake sqlsequel:convert    # Convert the SQL file to the Sequel migration format
+```
+
+## Type Checking
+Schematic now includes type checking for configurations:
+- Validates all configuration values
+- Ensures type safety for sensitive data
+- Provides clear error messages for type mismatches
+
+## StarRocks Routine Load Management
+Routine loads in StarRocks are managed using a migration-based approach:
+
+1. **Generate Migration**
+```bash
+rake starrocks:routine_load:generate[users,create,yaml]
+# Creates: YYYYMMDDHHMMSS_create_users_routine_load.yaml
+```
+
+2. **Deploy Migration**
+```bash
+rake starrocks:routine_load:deploy
+```
+
+3. **Check Status**
+```bash
+rake starrocks:routine_load:status
 ```

@@ -9,46 +9,37 @@ module Schematic
           deploy_hydrated(client, hydrated_data)
         end
 
-        protected
-
         def deploy_hydrated(client, hydrated_data)
           raise NotImplementedError, "#{self.class} must implement 'deploy_hydrated' method"
         end
 
-        def hydrate_placeholders(data)
-          provider = options[:provider] || Providers::RoutineLoadConfigProvider.create
+        protected
 
-          replacements = {
-            'KAFKA_BROKER_LIST' => provider.kafka_config[:broker_list],
-            'KAFKA_SECURITY_PROTOCOL' => provider.kafka_config[:security][:protocol],
-            'KAFKA_SASL_MECHANISM' => provider.kafka_config[:security][:mechanism],
-            'KAFKA_SASL_USERNAME' => provider.kafka_config[:security][:username],
-            'KAFKA_SASL_PASSWORD' => provider.kafka_config[:security][:password],
-            'KAFKA_SSL_VERIFY' => provider.kafka_config[:security][:ssl_verify],
-            'KAFKA_PARTITIONS' => provider.kafka_config[:partitions],
-            'KAFKA_OFFSET' => provider.kafka_config[:offset],
-            'SCHEMA_REGISTRY_URL' => provider.schema_registry_config[:url],
-            'SCHEMA_REGISTRY_USERNAME' => provider.schema_registry_config[:auth][:username],
-            'SCHEMA_REGISTRY_PASSWORD' => provider.schema_registry_config[:auth][:password]
+        def hydrate_placeholders(data)
+          placeholders = {
+            'DB_NAME' => options[:provider]&.db_name || 'schematic',
+            'KAFKA_BROKER_LIST' => options[:provider]&.kafka_config[:broker_list],
+            'KAFKA_PARTITIONS' => options[:provider]&.kafka_config[:partitions],
+            'KAFKA_OFFSET' => options[:provider]&.kafka_config[:offset],
+            'KAFKA_SECURITY_PROTOCOL' => options[:provider]&.kafka_config[:security][:protocol],
+            'KAFKA_SASL_MECHANISM' => options[:provider]&.kafka_config[:security][:mechanism],
+            'KAFKA_SASL_USERNAME' => options[:provider]&.kafka_config[:security][:username],
+            'KAFKA_SASL_PASSWORD' => options[:provider]&.kafka_config[:security][:password],
+            'KAFKA_SSL_VERIFY' => options[:provider]&.kafka_config[:ssl_verfy].to_s,
+            'SCHEMA_REGISTRY_URL' => options[:provider]&.schema_registry_config[:url],
+            'SCHEMA_REGISTRY_USERNAME' => options[:provider]&.schema_registry_config[:auth][:username],
+            'SCHEMA_REGISTRY_PASSWORD' => options[:provider]&.schema_registry_config[:auth][:password]
           }
 
-          if data.is_a?(String)
-            data.gsub(/\{\{(\w+)\}\}/) { |_| replacements[$1] }
-          else
-            deep_transform_values(data) do |value|
-              value.is_a?(String) ? value.gsub(/\{\{(\w+)\}\}/) { |_| replacements[$1] } : value
-            end
-          end
-        end
-
-        def deep_transform_values(obj, &block)
-          case obj
+          case data
+          when String
+            data.gsub(/\{\{(\w+)\}\}/) { |_| placeholders[$1] }
           when Hash
-            obj.transform_values { |value| deep_transform_values(value, &block) }
+            data.transform_values { |v| hydrate_placeholders(v) }
           when Array
-            obj.map { |value| deep_transform_values(value, &block) }
+            data.map { |v| hydrate_placeholders(v) }
           else
-            yield(obj)
+            data
           end
         end
       end

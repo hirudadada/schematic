@@ -62,3 +62,54 @@ To deploy the Starrocks migrations:
 ```bash
 rake db:migrate
 ```
+
+## Routine Load Management
+
+### Default Properties
+StarRocks Routine Load comes with the following default properties:
+```yaml
+# Default Routine Load Properties
+desired_concurrent_number: 3      # Number of concurrent tasks
+format: json                      # Data format
+max_error_number: 0              # Maximum number of errors allowed
+max_filter_ratio: 1.0            # Maximum filter ratio
+max_batch_interval: 10           # Maximum batch interval in seconds
+max_batch_rows: 2000000          # Maximum rows per batch
+task_consume_second: 15          # Task consume timeout in seconds
+task_timeout_second: 60          # Task execution timeout in seconds
+```
+
+These defaults can be overridden through:
+1. Environment variables in `cluster.env`
+2. YAML configuration files
+3. SQL ALTER statements
+
+### Migration-Style Deployment
+Routine Load configurations are managed using a migration-based approach:
+
+```bash
+# Generate a new routine load migration
+rake starrocks:routine_load:generate[table_name,operation,format]
+
+# Example:
+rake starrocks:routine_load:generate[users,create,yaml]
+# Creates: YYYYMMDDHHMMSS_create_users_routine_load.yaml
+```
+
+### Checking Status
+To check the status of routine loads and migrations:
+
+```bash
+rake starrocks:routine_load:status
+```
+
+This shows:
+- Applied migrations history
+- Current routine load states
+- Deployment timestamps
+
+### Database Setup
+During initial setup, Schematic creates:
+1. Schema migrations table
+2. Routine load migrations table
+3. Required database structures

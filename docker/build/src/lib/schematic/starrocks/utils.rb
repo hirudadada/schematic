@@ -1,3 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'utils/file_path'
+module Schematic
+  module Starrocks
+    module Utils
+      # Empty module - functionality moved to specific modules
+    end
+  end
+end

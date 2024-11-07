@@ -1,3 +1,22 @@
+## [0.8.2] (2024-10-31)
+
+* Added StarRocks Routine Load feature
+  - Added migration-style deployment system for Routine Load
+  - Added type checking with dry-types
+  - Added support for sensitive data hydration
+  - Added GitOps configmap generation
+  - Added cluster configuration management
+  - Added deployment strategies (Migration/AutoStop/UserDefined)
+  - Added migration tracking in database
+* Enhanced StarRocks support
+  - Added cluster.env for Kafka and Schema Registry configuration
+  - Added type validation for configurations
+  - Added migration tracking in database
+  - Added routine load migrations table
+* Updated documentation for Routine Load feature
+* Fixed StarRocks table creation syntax
+* Added proper error handling for deployments
+
 ## [0.8.1] (2024-10-02)
 
 * Added support for StarRocks

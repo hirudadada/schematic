@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Schematic
   module Starrocks
     module Deployables
@@ -5,16 +7,23 @@ module Schematic
         include RoutineLoadSqlDeployable::DeploymentMethods
 
         def deploy(client)
-          hydrated_sql = hydrate_placeholders(data)
+          hydrated_sql = Types::StrictString[hydrate_placeholders(data)]
+          
           client.transaction do
             statements = parse_statements(hydrated_sql)
             validate_statements!(statements)
 
-            if has_create_statement?(statements)
-              create_stmt = extract_create_statement(statements)
-              load_info = extract_load_info(create_stmt)
-              strategy = select_deployment_strategy(statements)
-              strategy.execute(client, statements, load_info)
+            load_info = if has_create_statement?(statements)
+                         extract_load_info(extract_create_statement(statements))
+                       else
+                         extract_load_info(statements.first)
+                       end
+
+            if @strategy
+              @strategy.execute(client, statements, load_info)
+            elsif has_create_statement?(statements)
+              deployment_strategy = select_deployment_strategy(statements)
+              deployment_strategy.execute(client, statements, load_info)
             else
               statements.each do |stmt|
                 logger.debug("Executing routine load command: #{stmt}") if logger.debug?

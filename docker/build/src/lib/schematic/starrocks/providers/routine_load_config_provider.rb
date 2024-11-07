@@ -4,63 +4,56 @@ module Schematic
   module Starrocks
     module Providers
       class RoutineLoadConfigProvider
-        # NOTE: https://docs.starrocks.io/docs/sql-reference/sql-statements/loading_unloading/routine_load/ALTER_ROUTINE_LOAD
-        ALTERABLE_PROPERTIES = %i[
-          desired_concurrent_number
-          max_error_number
-          max_batch_interval
-          max_batch_rows
-          max_batch_size
-          jsonpaths
-          json_root
-          strip_outer_array
-          strict_mode
-          timezone
-        ].freeze
+        include Defaults
+
+        attr_reader :db_name, :kafka_config, :schema_registry_config
+
+        def self.create
+          new.prepare
+        end
+
+        def initialize
+          @db = nil
+          @kafka_broker_list = nil
+          @kafka_partitions = nil
+          @kafka_offset = nil
+          @kafka_sasl_username = nil
+          @kafka_sasl_password = nil
+          @schema_registry_url = nil
+          @sink_username = nil
+          @sink_password = nil
+          @properties = DEFAULT_PROPERTIES
+        end
 
         def prepare
           @db = fetch_env('DB_NAME', 'schematic')
           @kafka_broker_list = fetch_env('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092')
           @kafka_partitions = fetch_env('KAFKA_PARTITIONS', '0,1,2')
           @kafka_offset = fetch_env('KAFKA_OFFSET', 'OFFSET_BEGINNING')
-          @kafka_sasl_username = fetch_env('KAFKA_SASL_USERNAME', 'default_username')
+          @kafka_sasl_username = fetch_env('KAFKA_SASL_USERNAME', 'kafka_user')
           @kafka_sasl_password = decrypt_kafka_password
           @schema_registry_url = fetch_env('SCHEMA_REGISTRY_URL', 'schema-registry:8081')
-          @sink_username = fetch_env('SCHEMA_REGISTRY_USERNAME', 'sink_user')
+          @sink_username = fetch_env('SCHEMA_REGISTRY_USERNAME', 'registry_user')
           @sink_password = decrypt_schema_registry_password
-
-          # Default properties from environment
-          @properties = {
-            desired_concurrent_number: fetch_env('ROUTINE_LOAD_CONCURRENT_NUMBER', '3'),
-            format: 'json',
-            # strip_outer_array: fetch_env('ROUTINE_LOAD_STRIP_OUTER_ARRAY', 'false'),
-            # strict_mode: fetch_env('ROUTINE_LOAD_STRICT_MODE', 'true'),
-            max_batch_interval: fetch_env('ROUTINE_LOAD_MAX_BATCH_INTERVAL', '10'),
-            max_batch_rows: fetch_env('ROUTINE_LOAD_MAX_BATCH_ROWS', '200000'),
-            # max_batch_size: fetch_env('ROUTINE_LOAD_MAX_BATCH_SIZE', '104857600'),
-            max_error_number: fetch_env('ROUTINE_LOAD_MAX_ERROR_NUMBER', '1000'),
-            max_filter_ratio: fetch_env('ROUTINE_LOAD_MAX_FILTER_RATIO', '1.0'),
-            task_consume_second: fetch_env('ROUTINE_LOAD_TASK_CONSUME_SECOND', '15'),
-            task_timeout_second: fetch_env('ROUTINE_LOAD_TASK_TIMEOUT_SECOND', '60'),
-            # timezone: fetch_env('ROUTINE_LOAD_TIMEZONE', 'Asia/Macau')
-          }
 
           validate!
           self
         end
 
-        def db_name
-          @db
-        end
-
         def properties(operation = :create)
-          return @properties if operation == :create
-
-          if operation == :alter
+          case operation.to_sym
+          when :create
+            @properties
+          when :alter
+            # Only return alterable properties without validation
             @properties.select { |k, _| ALTERABLE_PROPERTIES.include?(k) }
           else
             {}
           end
+        end
+
+        def db_name
+          @db
         end
 
         def kafka_config
@@ -79,26 +72,16 @@ module Schematic
         end
 
         def schema_registry_config
-          {
+          Types::SchemaRegistryConfig[{
             url: @schema_registry_url,
             auth: {
               username: @sink_username,
               password: @sink_password
             }
-          }
+          }]
         end
 
-        def merge_properties(new_properties)
-          @properties = @properties.merge(new_properties)
-        end
-
-        class << self
-          def create
-            new.prepare
-          end
-        end
-
-        protected
+        private
 
         def fetch_env(key, default = nil)
           ENV.fetch(key, default)&.strip

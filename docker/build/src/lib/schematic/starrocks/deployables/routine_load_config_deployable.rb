@@ -7,11 +7,14 @@ module Schematic
     module Deployables
       class RoutineLoadConfigDeployable < ConfigDeployable
         module DeploymentMethods
-          def check_and_stop_existing(client, db_name, load_name)
-            result = client.fetch("SHOW ROUTINE LOAD FROM `#{db_name}` WHERE NAME = '#{load_name}'").all
+          def check_and_stop_existing(client, db_name, routine_name)
+            db_name = Types::StrictString[db_name]
+            routine_name = Types::StrictString[routine_name]
+            
+            result = client.fetch("SHOW ROUTINE LOAD FROM `#{db_name}` WHERE NAME = '#{routine_name}'").all
 
             if result.any?
-              stop_sql = "STOP ROUTINE LOAD FOR `#{load_name}`"
+              stop_sql = "STOP ROUTINE LOAD FOR `#{routine_name}`"
               logger.debug("Stopping existing routine load: #{stop_sql}") if logger.debug?
               client.run(stop_sql)
               sleep(2)
@@ -19,63 +22,84 @@ module Schematic
           end
 
           def execute_operation(client, config)
+            # For create operation, ensure topic is set
+            if config[:operation].to_sym == :create
+              config = config.merge(
+                kafka: config[:kafka].merge(topic: config[:table])
+              )
+            end
+
+            # Validate based on operation type
+            config = case config[:operation].to_sym
+                    when :create
+                      Types::CreateRoutineLoadConfig[config]
+                    when :alter
+                      Types::AlterRoutineLoadConfig[config]
+                    else
+                      Types::SimpleRoutineLoadConfig[config]
+                    end
+            
             case config[:operation].to_sym
             when :create
-              create_routine_load(client, config)
-            when :pause
-              client.run("PAUSE ROUTINE LOAD FOR `#{config[:routine_name]}`;")
-            when :resume
-              client.run("RESUME ROUTINE LOAD FOR `#{config[:routine_name]}`;")
-            when :stop
-              client.run("STOP ROUTINE LOAD FOR `#{config[:routine_name]}`;")
+              sql = create_routine_load_sql(config)
+              client.run(sql)
             when :alter
-              alter_routine_load(client, config)
+              sql = alter_routine_load_sql(config)
+              client.run(sql)
+            when :pause, :resume, :stop
+              # Simple operations only need routine_name
+              client.run("#{config[:operation].to_s.upcase} ROUTINE LOAD FOR `#{config[:routine_name]}`;")
             else
-              raise DeploymentError, "Unsupported operation: #{config[:operation]}"
+              raise AnalyzingError, "Unsupported operation: #{config[:operation]}"
             end
           end
 
-          def create_routine_load(client, config)
-            columns = config[:columns].join(', ')
-            jsonpaths = config[:jsonpaths].map { |path| "\\\"#{path}\\\"" }.join(', ')
+          def create_routine_load_sql(data)
+            # Validate and ensure required fields
+            data = data.merge(
+              columns: data[:columns] || DEFAULT_COLUMNS,
+              properties: data[:properties] || {}
+            )
+            
+            # Validate with types
+            data = Types::RoutineLoadConfig[data]
+            
+            columns = data[:columns].join(', ')
 
-            sql = <<~SQL
-              CREATE ROUTINE LOAD #{config[:db]}.#{config[:routine_name]} ON #{config[:table]}
+            <<~SQL
+              CREATE ROUTINE LOAD `#{data[:db]}`.`#{data[:routine_name]}` ON `#{data[:table]}`
               COLUMNS TERMINATED BY ',',
               COLUMNS (#{columns})
               PROPERTIES
               (
-                #{format_properties(config[:properties])},
-                "jsonpaths" = "[#{jsonpaths}]"
+                #{format_properties(data[:properties])}
               )
               FROM KAFKA
               (
-                #{format_kafka_config(config[:kafka], config[:schema_registry])}
+                #{format_kafka_config(data[:kafka], data[:schema_registry])}
               );
             SQL
-
-            logger.debug("Creating routine load: #{sql}") if logger.debug?
-            client.run(sql)
           end
 
-          def alter_routine_load(client, config)
-            sql = <<~SQL
-              ALTER ROUTINE LOAD FOR `#{config[:routine_name]}`
+          def alter_routine_load_sql(data)
+            <<~SQL
+              ALTER ROUTINE LOAD FOR `#{data[:routine_name]}`
               PROPERTIES
               (
-                #{format_properties(config[:properties])}
+                #{format_properties(data[:properties])}
               );
             SQL
-
-            logger.debug("Altering routine load: #{sql}") if logger.debug?
-            client.run(sql)
           end
 
           def format_properties(properties)
+            # Don't validate properties here - they should already be validated
             properties.map { |k, v| %("#{k}" = "#{format_value(v)}") }.join(",\n  ")
           end
 
           def format_kafka_config(kafka, schema_registry)
+            kafka = Types::KafkaConfig[kafka]
+            schema_registry = Types::SchemaRegistryConfig[schema_registry]
+            
             [
               %("kafka_broker_list" = "#{kafka[:broker_list]}"),
               %("kafka_topic" = "#{kafka[:topic]}"),
@@ -95,9 +119,27 @@ module Schematic
             case value
             when true, 'true' then 'true'
             when false, 'false' then 'false'
-            when Array then value.join(',')
+            when Array
+              # Handle jsonpaths array specially
+              if value.all? { |v| v.start_with?('$.') }
+                "[#{value.map { |path| "\\\"#{path}\\\"" }.join(', ')}]"
+              else
+                value.join(',')
+              end
             else value.to_s
             end
+          end
+
+          def extract_load_info(config)
+            version = name.split('_').first
+
+            Types::RoutineLoadInfo[{
+              db_name: options[:provider]&.db_name || 'schematic',
+              routine_name: config[:routine_name],
+              operation: config[:operation].to_s,
+              table_name: config[:table],
+              version: version
+            }]
           end
         end
 
@@ -105,17 +147,34 @@ module Schematic
 
         def deploy(client)
           provider = options[:provider] || Providers::RoutineLoadConfigProvider.create
-
+          
           client.transaction do
             client.run("USE #{provider.db_name};")
 
-            if data[:operation].to_sym == :create
+            if data[:operation].to_sym == :create && !@strategy
               check_and_stop_existing(client, provider.db_name, data[:routine_name])
             end
 
-            execute_operation(client, data)
+            if @strategy
+              @strategy.execute(client, [build_sql], data)
+            else
+              execute_operation(client, data)
+            end
           end
           logger.info("Deployed routine load operation: #{data[:operation]} for #{data[:routine_name]}")
+        end
+
+        private
+
+        def build_sql
+          case data[:operation].to_sym
+          when :create
+            create_routine_load_sql(data)
+          when :alter
+            alter_routine_load_sql(data)
+          else
+            "#{data[:operation].to_s.upcase} ROUTINE LOAD FOR `#{data[:routine_name]}`;"
+          end
         end
       end
     end

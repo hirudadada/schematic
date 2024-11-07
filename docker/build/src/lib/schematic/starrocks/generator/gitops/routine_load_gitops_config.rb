@@ -2,8 +2,8 @@
 
 module Schematic
   module Starrocks
-    class Generator
-      class RoutineLoadConfigMap < Schematic::Generator::GitOpsConfig
+    module Generator
+      class RoutineLoadGitOpsConfig < Schematic::Generator::GitOpsConfig
         def generate
           generate_gitops_dir
           render_cipher_configmap
@@ -35,25 +35,50 @@ module Schematic
         end
 
         def kafka_credentials
-          {
+          creds = {
             'KAFKA_BROKER_LIST' => ENV.fetch('KAFKA_BROKER_LIST', ''),
             'KAFKA_SECURITY_PROTOCOL' => ENV.fetch('KAFKA_SECURITY_PROTOCOL', ''),
             'KAFKA_SASL_MECHANISM' => ENV.fetch('KAFKA_SASL_MECHANISM', ''),
             'KAFKA_SASL_USERNAME' => ENV.fetch('KAFKA_SASL_USERNAME', ''),
-            'KAFKA_SASL_PASSWORD' => ENV.fetch('KAFKA_SASL_PASSWORD', ''),
-            'KAFKA_SASL_PASSWORD_ENCRYPTED' => ENV.fetch('KAFKA_SASL_PASSWORD_ENCRYPTED', ''),
             'KAFKA_SSL_VERIFY' => ENV.fetch('KAFKA_SSL_VERIFY', ''),
             'KAFKA_PARTITIONS' => ENV.fetch('KAFKA_PARTITIONS', ''),
             'KAFKA_OFFSET' => ENV.fetch('KAFKA_OFFSET', '')
           }
+
+          if ENV['KAFKA_SASL_PASSWORD_ENCRYPTED']
+            creds['KAFKA_SASL_PASSWORD_ENCRYPTED'] = ENV['KAFKA_SASL_PASSWORD_ENCRYPTED']
+          else
+            creds['KAFKA_SASL_PASSWORD'] = ENV['KAFKA_SASL_PASSWORD']
+          end
+
+          creds
         end
 
         def schema_registry_credentials
-          {
+          creds = {
             'SCHEMA_REGISTRY_URL' => ENV.fetch('SCHEMA_REGISTRY_URL', ''),
-            'SCHEMA_REGISTRY_USERNAME' => ENV.fetch('SCHEMA_REGISTRY_USERNAME', ''),
-            'SCHEMA_REGISTRY_PASSWORD' => ENV.fetch('SCHEMA_REGISTRY_PASSWORD', ''),
-            'SCHEMA_REGISTRY_PASSWORD_ENCRYPTED' => ENV.fetch('SCHEMA_REGISTRY_PASSWORD_ENCRYPTED', '')
+            'SCHEMA_REGISTRY_USERNAME' => ENV.fetch('SCHEMA_REGISTRY_USERNAME', '')
+          }
+
+          if ENV['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED']
+            creds['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED'] = ENV['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED']
+          else
+            creds['SCHEMA_REGISTRY_PASSWORD'] = ENV['SCHEMA_REGISTRY_PASSWORD']
+          end
+
+          creds
+        end
+
+        def routine_load_properties
+          {
+            'ROUTINE_LOAD_CONCURRENT_NUMBER' => ENV.fetch('ROUTINE_LOAD_CONCURRENT_NUMBER', '3'),
+            'ROUTINE_LOAD_FORMAT' => ENV.fetch('ROUTINE_LOAD_FORMAT', 'json'),
+            'ROUTINE_LOAD_MAX_ERROR_NUMBER' => ENV.fetch('ROUTINE_LOAD_MAX_ERROR_NUMBER', '0'),
+            'ROUTINE_LOAD_MAX_FILTER_RATIO' => ENV.fetch('ROUTINE_LOAD_MAX_FILTER_RATIO', '1.0'),
+            'ROUTINE_LOAD_MAX_BATCH_INTERVAL' => ENV.fetch('ROUTINE_LOAD_MAX_BATCH_INTERVAL', '10'),
+            'ROUTINE_LOAD_MAX_BATCH_ROWS' => ENV.fetch('ROUTINE_LOAD_MAX_BATCH_ROWS', '2000000'),
+            'ROUTINE_LOAD_TASK_CONSUME_SECOND' => ENV.fetch('ROUTINE_LOAD_TASK_CONSUME_SECOND', '15'),
+            'ROUTINE_LOAD_TASK_TIMEOUT_SECOND' => ENV.fetch('ROUTINE_LOAD_TASK_TIMEOUT_SECOND', '60')
           }
         end
       end

@@ -6,6 +6,8 @@ module Schematic
   module Starrocks
     module Deployables
       class RoutineLoadSqlDeployable < SqlDeployable
+        include Defaults
+
         module DeploymentMethods
           def parse_statements(sql)
             sql.split(';')
@@ -16,22 +18,57 @@ module Schematic
           def extract_create_statement(statements)
             create_stmt = statements.find { |stmt| stmt.match?(/\ACREATE\s+ROUTINE\s+LOAD/i) }
             raise DeploymentError, "No CREATE ROUTINE LOAD statement found" unless create_stmt
-            create_stmt
+            Types::StrictString[create_stmt]
           end
 
           def extract_load_info(sql)
-            match = ALLOWED_SQL_PATTERNS.first.match(sql)
-            raise DeploymentError, "Cannot extract routine load info from SQL" unless match
-            {
-              db_name: match[:db_name],
-              load_name: match[:load_name]
-            }
+            operation = case sql
+                        when /\ACREATE\s+ROUTINE\s+LOAD/i then 'create'
+                        when /\APAUSE\s+ROUTINE\s+LOAD/i then 'pause'
+                        when /\ARESUME\s+ROUTINE\s+LOAD/i then 'resume'
+                        when /\ASTOP\s+ROUTINE\s+LOAD/i then 'stop'
+                        when /\AALTER\s+ROUTINE\s+LOAD/i then 'alter'
+                        else ''
+                        end
+
+            version = name.split('_').first
+
+            if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
+              match = ALLOWED_SQL_PATTERNS.first.match(sql)
+              raise DeploymentError, "Cannot extract routine load info from CREATE SQL" unless match
+
+              Types::RoutineLoadInfo[{
+                db_name: options[:provider]&.db_name || 'schematic',
+                routine_name: match[:routine_name],
+                operation: operation,
+                table_name: match[:table_name],
+                version: version
+              }]
+            else
+              match = /FOR\s+`(?<routine_name>rl_[\w]+)`/i.match(sql)
+              raise DeploymentError, "Cannot extract routine load info from SQL" unless match
+              
+              Types::RoutineLoadInfo[{
+                db_name: options[:provider]&.db_name || 'schematic',
+                routine_name: match[:routine_name],
+                operation: operation,
+                table_name: nil,
+                version: version
+              }]
+            end
           end
 
           def validate_statements!(statements)
             statements.each do |stmt|
               unless ALLOWED_COMMANDS.any? { |pattern| stmt.match?(pattern) }
                 raise DeploymentError, "Invalid routine load command: #{stmt}"
+              end
+
+              if stmt.match?(/FROM\s+`([^`]+)`/i)
+                db_name = $1
+                unless db_name == options[:provider]&.db_name
+                  raise DeploymentError, "Cannot access database: #{db_name}"
+                end
               end
             end
 
@@ -81,7 +118,7 @@ module Schematic
         include DeploymentMethods
 
         ALLOWED_SQL_PATTERNS = [
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?<db_name>[\w.]+)\.(?<load_name>\w+)\s+ON\s+/i,
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`[\w.]+`\.)?`(?<routine_name>rl_[\w]+)`\s+ON\s+`(?<table_name>[\w]+)`/i,
           /\s+COLUMNS\s*\([^)]+\)/i,
           /\s+PROPERTIES\s*\([^)]+\)/i
         ].freeze
@@ -89,10 +126,10 @@ module Schematic
         ALLOWED_COMMANDS = [
           /\AUSE\s+\w+/i,
           /\ACREATE\s+ROUTINE\s+LOAD/i,
-          /\APAUSE\s+ROUTINE\s+LOAD\s+FOR/i,
-          /\ARESUME\s+ROUTINE\s+LOAD\s+FOR/i,
-          /\ASTOP\s+ROUTINE\s+LOAD\s+FOR/i,
-          /\AALTER\s+ROUTINE\s+LOAD\s+FOR/i
+          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
+          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
+          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
+          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i
         ].freeze
 
         FORBIDDEN_PATTERNS = [
@@ -115,7 +152,7 @@ module Schematic
             if has_create_statement?(statements)
               create_stmt = extract_create_statement(statements)
               load_info = extract_load_info(create_stmt)
-              strategy = select_deployment_strategy(statements)
+              strategy = @strategy || select_deployment_strategy(statements)
               strategy.execute(client, statements, load_info)
             else
               statements.each do |stmt|

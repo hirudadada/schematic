@@ -4,6 +4,13 @@ module Schematic
   module Starrocks
     module Deployables
       class SqlDeployable < DeployableResource
+        SqlData = Types::Strict::String | Types::Strict::Array.of(Types::Strict::String)
+
+        def initialize(name, data, options = {})
+          @data = SqlData[data]  # Validate SQL data
+          super(name, @data, options)
+        end
+
         def sql
           data
         end

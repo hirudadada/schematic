@@ -22,8 +22,10 @@ COPY . .
 RUN apk add --no-cache \
         freetds-dev mariadb-dev libpq-dev \
         gcompat curl make \
-        build-base git && \
-        \
+        ruby-dev \
+        libffi-dev \
+        build-base gcc musl-dev \
+        && \
         gem install rubocop -v '~> 1.50' && \
         gem install rubocop-rspec -v '~> 2.20' && \
         bundle install --jobs=3 --retry=3

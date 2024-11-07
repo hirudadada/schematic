@@ -4,16 +4,15 @@ module Schematic
   module Starrocks
     module Templates
       class TemplateResource
-        attr_reader :name, :task, :type
+        attr_reader :name, :type, :provider
 
-        def initialize(name, task, type)
+        def initialize(name, type, provider = nil)
           @name = name
-          @task = task
           @type = type
         end
 
         def create
-          raise NotImplementedError, "abstract class #{self.class} has not implemented method '#{__method__}'"
+          raise NotImplementedError, "#{self.class} must implement 'create' method"
         end
       end
     end

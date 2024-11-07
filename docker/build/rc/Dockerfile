@@ -23,8 +23,7 @@ FROM base AS dependencies
 
 RUN apk add --no-cache \
         freetds-dev mariadb-dev libpq-dev \
-        build-base gcompat && \
-        \
+        build-base gcompat gcc musl-dev && \
         bundle config set without "development test" && \
         bundle install --jobs=3 --retry=3
 

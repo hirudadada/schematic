@@ -1,11 +1,28 @@
-# Routine Load Feature Changelog
+# StarRocks Routine Load Feature Changelog
 
 ## Features
 ### Core Functionality
-- Added Routine Load deployment support for StarRocks
+- Added Routine Load deployment support with migration-style versioning
 - Support for SQL and YAML configuration formats
 - Support for multiple operations (create, pause, resume, stop, alter)
-- Automatic routine load name generation based on table name and timestamp
+- Migration tracking in database for deployment history
+
+### Default Properties
+- Configured optimal default properties:
+  - desired_concurrent_number: 3
+  - format: json
+  - max_error_number: 0
+  - max_filter_ratio: 1.0
+  - max_batch_interval: 10
+  - max_batch_rows: 2000000
+  - task_consume_second: 15
+  - task_timeout_second: 60
+
+### Type System
+- Added dry-types based type checking
+- Type validation for all configurations
+- Strict type checking for sensitive data
+- Type-safe deployment operations
 
 ### Template Generation
 - Added SQL template generation with placeholders for sensitive data
@@ -62,13 +79,13 @@ docker/
 
 ````bash
 # Create new routine load
-rake starrocks:routine_load:create[create:table_name,sql]
-rake starrocks:routine_load:create[create:table_name,yaml]
+rake starrocks:routine_load:generate[create:table_name,sql]
+rake starrocks:routine_load:generate[create:table_name,yaml]
 # Create with specific operation
-rake starrocks:routine_load:create[pause,table_name,sql]
-rake starrocks:routine_load:create[resume,table_name,sql]
-rake starrocks:routine_load:create[stop,table_name,sql]
-rake starrocks:routine_load:create[alter,table_name,sql]
+rake starrocks:routine_load:generate[pause,table_name,sql]
+rake starrocks:routine_load:generate[resume,table_name,sql]
+rake starrocks:routine_load:generate[stop,table_name,sql]
+rake starrocks:routine_load:generate[alter,table_name,sql]
 # Deploy routine loads
 rake starrocks:routine_load:deploy
 ```
@@ -78,3 +95,16 @@ rake starrocks:routine_load:deploy
 - Configmap Generation: Automatic in production, optional in development
 - Environment Variables: Customizable through cluster.env
 - Template Placeholders: Mustache-style syntax for sensitive data
+
+# StarRocks Routine Load Migrations
+
+## Migration Format
+- Timestamp: YYYYMMDDHHMMSS
+- Operation: create/alter/pause/resume/stop
+- Table Name: target table
+- Example: `20241101000000_create_users_routine_load.yaml`
+
+## Applied Migrations
+- Initial version: Migration-based deployment system
+- Added routine load state tracking
+- Added migration tracking table

@@ -114,3 +114,38 @@ Finally, you can start your development locally inside the `dev.app` container:
 ```bash
 make shell.dev
 ```
+
+## Setting up StarRocks Project
+
+### Initial Setup
+1. Create a new project:
+```bash
+make create.project.starrocks project=your-project-name app=your-app-name target=/path/to/target/directory
+```
+
+2. Configure credentials:
+   - Edit `docker/make.env/starrocks/secret.env` for database credentials
+   - Edit `docker/make.env/starrocks/cluster.env` for Kafka and Schema Registry settings
+
+3. Initialize database:
+```bash
+cd docker
+make shell.dev.db
+./create_initial_database.sh
+./create_schema_migration_table.sh
+./create_routine_load_migrations_table.sh
+exit
+```
+
+### Routine Load Setup
+Default properties are configured for optimal performance:
+```yaml
+desired_concurrent_number: 3
+format: json
+max_error_number: 0
+max_filter_ratio: 1.0
+max_batch_interval: 10
+max_batch_rows: 2000000
+task_consume_second: 15
+task_timeout_second: 60
+```

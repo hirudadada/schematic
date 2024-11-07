@@ -4,11 +4,10 @@ module Schematic
   module Starrocks
     module Deployables
       module Strategies
-        class UserDefinedStopStrategy < RoutineLoadDeploymentStrategy
-          def execute(client, statements, _load_info)
-            statements.each do |stmt|
-              execute_with_delay(client, stmt)
-            end
+        class UserDefinedStrategy < RoutineLoadDeploymentStrategy
+          def execute(client, statements, load_info)
+            load_info = Types::RoutineLoadInfo[load_info]
+            statements.each { |stmt| execute_with_delay(client, stmt) }
           end
         end
       end
