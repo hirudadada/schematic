@@ -64,7 +64,7 @@ module Schematic
                 password: '{{SCHEMA_REGISTRY_PASSWORD}}'
               }
             },
-            properties: DEFAULT_PROPERTIES
+            properties: init_properties
           }
         end
 

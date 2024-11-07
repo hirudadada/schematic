@@ -1,4 +1,4 @@
-ENV ?=.local
+ENV ?=
 export ENV
 
 include Makefile.env

@@ -1,18 +1,5 @@
 # Development Workflow
 
-- [Development Workflow](#development-workflow)
-  - [List of Available Rake Tasks](#list-of-available-rake-tasks)
-    - [MSSQL Tasks](#mssql-tasks)
-    - [Starrocks Tasks](#starrocks-tasks)
-  - [Creating Database Migrations](#creating-database-migrations)
-  - [Deploying Migrations](#deploying-migrations)
-  - [Creating and Deploying Stored Procedures](#creating-and-deploying-stored-procedures)
-  - [Creating and Deploying SQL Server Jobs](#creating-and-deploying-sql-server-jobs)
-  - [Deploying to Multiple Database Targets](#deploying-to-multiple-database-targets)
-  - [Generating Cipher Keys and GitOps Config](#generating-cipher-keys-and-gitops-config)
-  - [Building and Pushing Application Images](#building-and-pushing-application-images)
-  - [Sequel Migration Script Format Conversion](#sequel-migration-script-format-conversion)
-
 ## List of Available Rake Tasks
 
 Schematic provides a set of handy Rake tasks out-of-the-box:
@@ -21,213 +8,173 @@ Schematic provides a set of handy Rake tasks out-of-the-box:
 rake -T
 ```
 
-### MSSQL Tasks
+## Database Management
+
+### Migration Tasks
 ```plaintext
-/home/app # rake -T
-rake app:env                           # Load environment settings
-rake app:version                       # Show application version
-rake check                             # Perform configuration checks
-rake cipher:decrypt_env_var[env_var]   # Decrypt an environment variable
-rake cipher:encrypt[string]            # Encrypt a string
-rake cipher:encrypt_env_var[env_var]   # Encrypt an environment variable
-rake cipher:generate_keys              # Generate cipher keys
-rake db:applied_migration[steps,app]   # Show a given applied schema migration
-rake db:applied_migrations[app]        # Show applied schema migrations
-rake db:apply[steps,app]               # Apply last n migrations
-rake db:clean[app]                     # Remove migrations
-rake db:create_migration[name]         # Create a migration file with a timestamp and name
+rake db:create_migration[name]         # Create a migration file
 rake db:migrate[version,app]           # Run migrations
-rake db:migration_to_apply[steps,app]  # Show a given schema migration to apply
-rake db:migrations_to_apply[app]       # Show schema migrations to apply
-rake db:redo[steps,app]                # Redo last n migrations
-rake db:reset[app]                     # Remove migrations and re-run migrations
-rake db:rollback[steps,app]            # Rollback last n migrations
-rake db:test                           # Test database connection
-rake deploy[app]                       # Run deployment
-rake fn:create[name]                   # Create a functions template file
-rake fn:deploy                         # Apply function
-rake gitops:generate                   # Generate GitOps config
-rake job:create[name]                  # Create job template files
-rake job:deploy                        # Apply jobs
-rake schematic:version                 # Show Schematic version
-rake seed:create[name]                 # Create a seed data template file
-rake seed:deploy                       # Load Seed data
-rake sp:create[name]                   # Create a stored procedure template file
-rake sp:deploy                         # Apply stored procedures
-rake sqlsequel:conver                  # Conver a.sql from SQL format to sequel migration format
-rake sqlsequel:create                  # Create source SQL format a.sql for conversion to sequel migration format
-rake version                           # Show version info
-rake vw:create[name]                   # Create a vies template file
-rake vw:deploy                         # Apply views
+rake db:rollback[steps,app]            # Rollback migrations
+rake db:reset[app]                     # Reset and re-run migrations
+rake db:status                         # Show migration status
 ```
 
-### Starrocks Tasks
+Migration files are versioned and tracked in the database:
+```ruby
+# db/migrations/YYYYMMDDHHMMSS_create_example_table.rb
+Sequel.migration do
+  up do
+    create_table(:example) do
+      primary_key :id
+      String :name, null: false
+      DateTime :created_at
+    end
+  end
+
+  down do
+    drop_table(:example)
+  end
+end
+```
+
+### MSSQL Features
+
+#### Stored Procedures
 ```plaintext
-/home/app # rake -T
-rake app:env                                            # Load environment settings
-rake app:version                                        # Show application version
-rake check                                              # Perform configuration checks
-rake cipher:decrypt_env_var[env_var]                    # Decrypt an environment variable
-rake cipher:encrypt[string]                             # Encrypt a string
-rake cipher:encrypt_env_var[env_var]                    # Encrypt an environment variable
-rake cipher:generate_keys                               # Generate cipher keys
-rake db:applied_migration[steps,app]                    # Show a given applied schema migration
-rake db:applied_migrations[app]                         # Show applied schema migrations
-rake db:apply[steps,app]                                # Apply last n migrations
-rake db:clean[app]                                      # Remove migrations
-rake db:create_migration[name]                          # Create a migration file with a timestamp and name
-rake db:migrate[version,app]                            # Run migrations
-rake db:migration_to_apply[steps,app]                   # Show a given schema migration to apply
-rake db:migrations_to_apply[app]                        # Show schema migrations to apply
-rake db:redo[steps,app]                                 # Redo last n migrations
-rake db:reset[app]                                      # Remove migrations and re-run migrations
-rake db:rollback[steps,app]                             # Rollback last n migrations
-rake db:test                                            # Test database connection
-rake gitops:generate                                    # Generate GitOps config
-rake schematic:version                                  # Show Schematic version
-rake version                                            # Show version info
-rake starrocks:routine_load:generate[table,operation,format]  # Generate a new routine load migration
-rake starrocks:routine_load:deploy[migration_mode]           # Deploy routine loads (migration mode by default)
-rake starrocks:routine_load:status                          # Show routine load status and migration history
+rake sp:create[name]                   # Create stored procedure template
+rake sp:deploy                         # Deploy stored procedures
 ```
 
-## Creating Database Migrations
-
-After creating a new project, you'll likely want to create your database migration before any other development work:
-
-```bash
-rake db:create_migration[migration_name]
+Stored procedures are managed in versioned files:
+```sql
+-- db/mssql/stored_procedures/YYYYMMDDHHMMSS_example_procedure.sql
+CREATE OR ALTER PROCEDURE [dbo].[example_procedure]
+    @param1 INT,
+    @param2 VARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- Procedure logic here
+END
 ```
 
-This command will create a new migration file under `src/db/migrations/your-project-name_your-app-name` with a timestamp and the specified name.
-
-## Deploying Migrations
-
-To apply the database migrations:
-
-```bash
-rake db:migrate
+#### SQL Server Jobs
+```plaintext
+rake job:create[name]                  # Create job template
+rake job:deploy                        # Deploy jobs
 ```
 
-If this doesn't work, add database name
-
-```bash
-rake db:migrate[schematic]
+Jobs are configured in YAML files:
+```yaml
+# db/mssql/jobs/example_job.yml
+name: ExampleJob
+enabled: true
+schedule:
+  frequency: daily
+  start_time: "02:00"
+steps:
+  - name: ExecuteStoredProcedure
+    type: tsql
+    command: EXEC [dbo].[example_procedure] @param1=1, @param2='test'
 ```
 
-## Creating and Deploying Stored Procedures
+### StarRocks Features
 
-> [!NOTE] This feature is for SQL Server Only.
-
-To create a new stored procedure template:
-
-```bash
-rake sp:create[stored_procedure_name]
+#### Routine Load Management
+```plaintext
+rake starrocks:routine_load:generate   # Generate routine load migration
+rake starrocks:routine_load:deploy     # Deploy routine loads
+rake starrocks:routine_load:status     # Show routine load status
 ```
 
-This command will create a new stored procedure template file under `src/stored_procedures/your-project-name_your-app-name`.
+Routine loads can be managed in two modes:
+1. **Migration Mode** (Default)
+   - Versioned migrations in `db/starrocks/routine_loads/migrations/`
+   - Tracked in `routine_load_migrations` table
+   - Ensures idempotent deployments
+   ```bash
+   # Generate and deploy migrations
+   rake starrocks:routine_load:generate[table_name,create,yaml]
+   rake starrocks:routine_load:deploy
+   ```
 
-You can edit the stored procedure file as needed, and then deploy it using the following command:
+2. **Direct Mode**
+   - Direct operations in `db/starrocks/routine_loads/`
+   - No migration tracking
+   - Best for one-off operations
+   ```bash
+   # Deploy without migration tracking
+   MIGRATION_MODE=false rake starrocks:routine_load:deploy
+   ```
 
+For detailed StarRocks routine load management, see [StarRocks Guide](STARROCKS.md).
+
+## Configuration and Security
+
+### Environment Setup
 ```bash
-rake sp:deploy
+rake app:env                           # Load environment settings
+rake check                            # Perform configuration checks
 ```
 
-## Creating and Deploying SQL Server Jobs
-
-> [!NOTE] This feature is for SQL Server Only.
-
-To create a new SQL Server job template:
-
+### Cipher Management
 ```bash
-rake job:create[job_name]
+rake cipher:generate_keys             # Generate cipher keys
+rake cipher:encrypt[string]           # Encrypt a string
+rake cipher:decrypt_env_var[env_var]  # Decrypt an environment variable
 ```
 
-This command will create a new job template file under `src/jobs/your-project-name_your-app-name` and a corresponding environment template file under `docker/deploy/env/jobs`.
-
-You can edit these files as needed, and then deploy the jobs using the following command:
-
+Sensitive data can be encrypted:
 ```bash
-rake job:deploy
+# Encrypt a password
+rake cipher:encrypt[mypassword]
+# Use in environment files
+DB_PASSWORD_ENCRYPTED=encrypted_string
 ```
 
-## Deploying to Multiple Database Targets
-
-> [!WARNING] This feature for Starrocks in Schematic is still under development.
-
-Schematic supports deploying to multiple database targets defined in the `databases.yaml` file under the project's root directory.
-
-To deploy to all defined database targets, run:
-
+### GitOps Configuration
 ```bash
-rake deploy
+rake gitops:generate                  # Generate GitOps config
 ```
 
-## Generating Cipher Keys and GitOps Config
+Generates Kubernetes configmaps for:
+- Database credentials
+- MSSQL job configurations
+- StarRocks routine load settings
 
-To generate cipher keys for encrypting and decrypting sensitive credentials:
+## Building and Deployment
 
+### Building Images
 ```bash
-rake cipher:generate_keys
-```
-
-To generate GitOps configurations:
-
-```bash
-rake gitops:generate
-```
-
-The generated configurations will be placed under `src/gitops`.
-
-## Building and Pushing Application Images
-
-Before building and pushing the application images, ensure that the correct version is specified in the `src/VERSION` file.
-
-To build the application image:
-
-```bash
+# Build release image
 make build.app.rel
+
+# Build development image
+make build.app.dev
 ```
 
-To push the application image to a repository:
-
+### Pushing Images
 ```bash
-docker tag your-image-tag your-repository/your-image:version
+# Push release image
 make push.app.rel
+
+# Push development image
+make push.app.dev
 ```
 
-## Sequel Migration Script Format Conversion
-
-> [!NOTE] This feature is for SQL Server Only.
-
-Schematic provides a Rake task to convert SQL migration scripts to the Sequel migration format:
-
+### Development Environment
 ```bash
-rake sqlsequel:create     # Create a source SQL format file for conversion
-rake sqlsequel:convert    # Convert the SQL file to the Sequel migration format
+# Start development containers
+make up
+
+# Access development shell
+make shell
+
+# Run tests
+make test
 ```
 
-## Type Checking
-Schematic now includes type checking for configurations:
-- Validates all configuration values
-- Ensures type safety for sensitive data
-- Provides clear error messages for type mismatches
-
-## StarRocks Routine Load Management
-Routine loads in StarRocks are managed using a migration-based approach:
-
-1. **Generate Migration**
-```bash
-rake starrocks:routine_load:generate[users,create,yaml]
-# Creates: YYYYMMDDHHMMSS_create_users_routine_load.yaml
-```
-
-2. **Deploy Migration**
-```bash
-rake starrocks:routine_load:deploy
-```
-
-3. **Check Status**
-```bash
-rake starrocks:routine_load:status
-```
+For more details on specific features:
+- [StarRocks Guide](STARROCKS.md)
+- [Getting Started](GETTING_STARTED.md)
+- [Project Structure](PROJECT_STRUCTURE.md)

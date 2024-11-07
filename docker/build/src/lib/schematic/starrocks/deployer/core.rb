@@ -32,7 +32,7 @@ module Schematic
         end
 
         def work_dir
-          @work_dir ||= options[:work_dir]
+          @work_dir ||= init_work_dir
         end
 
         def resource_dir
@@ -44,6 +44,10 @@ module Schematic
         end
 
         private
+
+        def init_work_dir
+          options[:work_dir] || Dir.pwd
+        end
 
         def init_resource_dir
           dir = Pathname.new(options[:resource_dir] || default_options[:resource_dir])

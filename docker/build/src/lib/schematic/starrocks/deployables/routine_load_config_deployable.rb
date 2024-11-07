@@ -21,36 +21,36 @@ module Schematic
             end
           end
 
-          def execute_operation(client, config)
+          def execute_operation(client, data)
             # For create operation, ensure topic is set
-            if config[:operation].to_sym == :create
-              config = config.merge(
-                kafka: config[:kafka].merge(topic: config[:table])
+            if data[:operation].to_sym == :create
+              data = data.merge(
+                kafka: data[:kafka].merge(topic: data[:table])
               )
             end
 
             # Validate based on operation type
-            config = case config[:operation].to_sym
+            data = case data[:operation].to_sym
                     when :create
-                      Types::CreateRoutineLoadConfig[config]
+                      Types::CreateRoutineLoadConfig[data]
                     when :alter
-                      Types::AlterRoutineLoadConfig[config]
+                      Types::AlterRoutineLoadConfig[data]
                     else
-                      Types::SimpleRoutineLoadConfig[config]
+                      Types::SimpleRoutineLoadConfig[data]
                     end
             
-            case config[:operation].to_sym
+            case data[:operation].to_sym
             when :create
-              sql = create_routine_load_sql(config)
+              sql = create_routine_load_sql(data)
               client.run(sql)
             when :alter
-              sql = alter_routine_load_sql(config)
+              sql = alter_routine_load_sql(data)
               client.run(sql)
             when :pause, :resume, :stop
               # Simple operations only need routine_name
-              client.run("#{config[:operation].to_s.upcase} ROUTINE LOAD FOR `#{config[:routine_name]}`;")
+              client.run("#{data[:operation].to_s.upcase} ROUTINE LOAD FOR `#{data[:routine_name]}`;")
             else
-              raise AnalyzingError, "Unsupported operation: #{config[:operation]}"
+              raise AnalyzingError, "Unsupported operation: #{data[:operation]}"
             end
           end
 
@@ -130,14 +130,14 @@ module Schematic
             end
           end
 
-          def extract_load_info(config)
+          def extract_load_info(data)
             version = name.split('_').first
 
             Types::RoutineLoadInfo[{
               db_name: options[:provider]&.db_name || 'schematic',
-              routine_name: config[:routine_name],
-              operation: config[:operation].to_s,
-              table_name: config[:table],
+              routine_name: data[:routine_name],
+              operation: data[:operation].to_s,
+              table_name: data[:table],
               version: version
             }]
           end

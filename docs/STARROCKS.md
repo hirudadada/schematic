@@ -1,115 +1,214 @@
-# Starrocks in Schematic
+# StarRocks Routine Load Management
 
-## Starrocks Migration Conventions
+## Overview
 
-Since the Sequel gem does not have a Starrocks adapter, the migration files for Starrocks require raw SQL statements.
+This guide describes how to manage routine loads in StarRocks using migrations and GitOps configurations.
 
-To create a new Starrocks migration:
+## Prerequisites
+
+- StarRocks cluster
+- Kafka cluster
+- Schema Registry (optional)
+- Ruby environment
+
+## Setup
+
+1. **Directory Structure**
+```
+project/
+├── db/
+│   └── starrocks/
+│       └── routine_loads/
+│           ├── migrations/     # For migration mode
+│           │   ├── YYYYMMDDHHMMSS_create_example_table_routine_load.yaml
+│           │   ├── YYYYMMDDHHMMSS_alter_example_table_routine_load.sql
+│           │   └── ...
+│           └── example_table_routine_load.sql  # For direct mode
+└── gitops/
+    └── overlays/
+        └── dev/
+            └── configmap/
+                ├── routine-load-credentials.yaml
+                └── routine-load-properties.yaml
+```
+
+2. **Environment Configuration**
+```env
+# StarRocks Connection
+DB_HOST=localhost
+DB_PORT=9030
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=schematic
+DB_ADAPTER=mysql2
+
+# Kafka Configuration
+KAFKA_BROKER_LIST=broker1:9092,broker2:9092
+KAFKA_SECURITY_PROTOCOL=SASL_SSL
+KAFKA_SASL_MECHANISM=PLAIN
+KAFKA_SASL_USERNAME=kafka_user
+KAFKA_SASL_PASSWORD=
+KAFKA_SSL_VERIFY=false
+KAFKA_PARTITIONS=0,1,2
+KAFKA_OFFSET=OFFSET_BEGINNING
+
+# Schema Registry Configuration
+SCHEMA_REGISTRY_URL=schema-registry:8081
+SCHEMA_REGISTRY_USERNAME=registry_user
+SCHEMA_REGISTRY_PASSWORD=
+
+# Routine Load Properties
+ROUTINE_LOAD_CONCURRENT_NUMBER=3
+ROUTINE_LOAD_FORMAT=json
+ROUTINE_LOAD_MAX_ERROR_NUMBER=0
+ROUTINE_LOAD_MAX_FILTER_RATIO=1.0
+ROUTINE_LOAD_MAX_BATCH_INTERVAL=10
+ROUTINE_LOAD_MAX_BATCH_ROWS=2000000
+ROUTINE_LOAD_TASK_CONSUME_SECOND=15
+ROUTINE_LOAD_TASK_TIMEOUT_SECOND=60
+
+# Deployment Configuration
+MIGRATION_MODE=true  # Set to false for Direct Mode
+HYDRATE=true        # Must be true for encrypted credentials
+RESOURCE_DIR=db/starrocks
+WORK_DIR=db/starrocks
+LOG_LEVEL=1         # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
+SQL_LOG_LEVEL=debug  # debug, info, warn, error
+```
+
+## Usage
+
+### 1. Generate Migration Files
 
 ```bash
-rake db:create_migration[migration_name]
+# Generate YAML migration (recommended)
+rake starrocks:routine_load:generate[table_name,create,yaml]
+rake starrocks:routine_load:generate[table_name,alter,yaml]
+rake starrocks:routine_load:generate[table_name,pause,yaml]
+rake starrocks:routine_load:generate[table_name,resume,yaml]
+rake starrocks:routine_load:generate[table_name,stop,yaml]
+
+# Or generate SQL migration
+rake starrocks:routine_load:generate[table_name,create,sql]
 ```
 
-This command will create a new migration file under `src/db/migrations/your-project-name_your-app-name` with a timestamp and the specified name.
+### 2. Edit Migration Files
 
-Here's an example of a Starrocks table migration script:
-
-```ruby
-# frozen_string_literal: true
-
-# db/migrations/20240930040354_example_create_table.rb
-Sequel.migration do
-  up do
-    execute(<<~SQL)
-      CREATE TABLE example_table (
-          order_id BIGINT,
-          order_date DATE,
-          customer_id INT,
-          total_amount DECIMAL(10,2)
-      )
-      ENGINE=olap
-      PRIMARY KEY (order_id, order_date, customer_id)
-      PARTITION BY RANGE (order_date)
-      (
-          PARTITION p201901 VALUES LESS THAN ('2019-02-01'),
-          PARTITION p201902 VALUES LESS THAN ('2019-03-01')
-      )
-      DISTRIBUTED BY HASH(order_id, order_date, customer_id)
-      ORDER BY (order_date, customer_id);
-    SQL
-  end
-
-  down do
-    execute(<<~SQL)
-      DROP TABLE IF EXISTS example_table;
-    SQL
-  end
-end
-```
-
-## Showing Migrations to Apply
-
-To show the migrations that are pending to be applied:
-
-```bash
-rake db:migrations_to_apply
-```
-
-## Deploying Migrations for Starrocks
-
-To deploy the Starrocks migrations:
-
-```bash
-rake db:migrate
-```
-
-## Routine Load Management
-
-### Default Properties
-StarRocks Routine Load comes with the following default properties:
+For YAML migrations:
 ```yaml
-# Default Routine Load Properties
-desired_concurrent_number: 3      # Number of concurrent tasks
-format: json                      # Data format
-max_error_number: 0              # Maximum number of errors allowed
-max_filter_ratio: 1.0            # Maximum filter ratio
-max_batch_interval: 10           # Maximum batch interval in seconds
-max_batch_rows: 2000000          # Maximum rows per batch
-task_consume_second: 15          # Task consume timeout in seconds
-task_timeout_second: 60          # Task execution timeout in seconds
+# 20240107000000_create_example_table_routine_load.yaml
+:table: example_table
+:routine_name: rl_example_table
+:operation: :create
+:columns:
+  - uid
+  - column1
+  - column2
+:kafka:
+  :broker_list: "{{KAFKA_BROKER_LIST}}"
+  :topic: example_table
+  :partitions: "{{KAFKA_PARTITIONS}}"
+  :offset: "{{KAFKA_OFFSET}}"
+  :security:
+    :protocol: "{{KAFKA_SECURITY_PROTOCOL}}"
+    :mechanism: "{{KAFKA_SASL_MECHANISM}}"
+    :username: "{{KAFKA_SASL_USERNAME}}"
+    :password: "{{KAFKA_SASL_PASSWORD}}"
+    :ssl_verify: "{{KAFKA_SSL_VERIFY}}"
+:schema_registry:
+  :url: "{{SCHEMA_REGISTRY_URL}}"
+  :auth:
+    :username: "{{SCHEMA_REGISTRY_USERNAME}}"
+    :password: "{{SCHEMA_REGISTRY_PASSWORD}}"
 ```
 
-These defaults can be overridden through:
-1. Environment variables in `cluster.env`
-2. YAML configuration files
-3. SQL ALTER statements
+For SQL migrations:
+```sql
+-- 20240107000000_create_example_table_routine_load.sql
+CREATE ROUTINE LOAD `rl_example_table` ON `example_table`
+COLUMNS TERMINATED BY ',',
+COLUMNS (uid, column1, column2)
+PROPERTIES
+(
+  "desired_concurrent_number" = "3",
+  "format" = "json",
+  "max_error_number" = "0",
+  "max_filter_ratio" = "1.0",
+  "max_batch_interval" = "10",
+  "max_batch_rows" = "2000000",
+  "task_consume_second" = "15",
+  "task_timeout_second" = "60"
+)
+FROM KAFKA
+(
+  "kafka_broker_list" = "{{KAFKA_BROKER_LIST}}",
+  "kafka_topic" = "example_table",
+  "property.security.protocol" = "{{KAFKA_SECURITY_PROTOCOL}}",
+  "property.sasl.mechanism" = "{{KAFKA_SASL_MECHANISM}}",
+  "property.sasl.username" = "{{KAFKA_SASL_USERNAME}}",
+  "property.sasl.password" = "{{KAFKA_SASL_PASSWORD}}",
+  "property.enable.ssl.certificate.verification" = "{{KAFKA_SSL_VERIFY}}",
+  "confluent.schema.registry.url" = "{{SCHEMA_REGISTRY_URL}}",
+  "property.basic.auth.credentials.source" = "USER_INFO",
+  "kafka_partitions" = "{{KAFKA_PARTITIONS}}",
+  "property.kafka_default_offsets" = "{{KAFKA_OFFSET}}"
+);
+```
 
-### Migration-Style Deployment
-Routine Load configurations are managed using a migration-based approach:
+### 3. Deploy Routine Loads
 
 ```bash
-# Generate a new routine load migration
-rake starrocks:routine_load:generate[table_name,operation,format]
+# Deploy with migration mode (default)
+rake starrocks:routine_load:deploy
 
-# Example:
-rake starrocks:routine_load:generate[users,create,yaml]
-# Creates: YYYYMMDDHHMMSS_create_users_routine_load.yaml
+# Deploy without migration tracking
+MIGRATION_MODE=false rake starrocks:routine_load:deploy
 ```
 
-### Checking Status
-To check the status of routine loads and migrations:
+### 4. Check Status
 
 ```bash
 rake starrocks:routine_load:status
 ```
 
 This shows:
-- Applied migrations history
-- Current routine load states
-- Deployment timestamps
+- Applied migrations
+- Current routine loads and their states
+- Any errors during deployment
 
-### Database Setup
-During initial setup, Schematic creates:
-1. Schema migrations table
-2. Routine load migrations table
-3. Required database structures
+## Operation Flow
+
+1. **Create Operation**
+   - Generates migration file
+   - Validates configuration
+   - Stops existing routine load if any
+   - Creates new routine load
+   - Records migration if in migration mode
+
+2. **Alter Operation**
+   - Requires routine load to be paused
+   - Updates properties
+   - Records migration if in migration mode
+
+3. **Pause/Resume/Stop Operations**
+   - Direct state management
+   - Records migration if in migration mode
+
+## Error Handling
+
+The deployment will stop immediately if:
+- SQL syntax errors
+- Invalid configurations
+- Connection issues
+- State validation errors (e.g., altering without pausing)
+
+## GitOps Integration
+
+The integration generates two configmaps:
+1. `routine-load-credentials.yaml`: Contains Kafka and Schema Registry credentials
+2. `routine-load-properties.yaml`: Contains routine load settings
+
+Generate GitOps configurations:
+```bash
+rake starrocks:gitops:generate
+```

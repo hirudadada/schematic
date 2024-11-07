@@ -4,22 +4,8 @@ module Schematic
   module Starrocks
     module Deployables
       class ConfigDeployable < DeployableResource
-        ConfigData = Types::Hash.schema(
-          task: Types::StrictSymbol | Types::Coercible::Symbol,
-          config: Types::Hash
-        )
-
         def initialize(name, data, options = {})
-          @data = ConfigData[data]  # Validate config data
-          super(name, @data, options)
-        end
-
-        def task
-          data[:task].to_sym
-        end
-
-        def config
-          data[:config]
+          super(name, data, options)
         end
 
         def deploy(client)

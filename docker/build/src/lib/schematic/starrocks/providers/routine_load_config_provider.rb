@@ -22,7 +22,7 @@ module Schematic
           @schema_registry_url = nil
           @sink_username = nil
           @sink_password = nil
-          @properties = DEFAULT_PROPERTIES
+          @properties = init_properties
         end
 
         def prepare
