@@ -19,13 +19,19 @@ module Schematic
           logger.info("Deploying resource...")
           resource.deploy(client)
           logger.info("Resource deployed successfully")
-        rescue StandardError => e
+        rescue AnalyzingError => e
           logger.error("An unexpected error occurred: #{e.message}")
           raise
         end
 
         def client
-          @client ||= init_client
+          Sequel.connect(
+            database_url,
+            loggers: [init_logger],
+            log_sql: options[:log_sql],
+            sql_log_level: options[:sql_log_level],
+            reconnect: true
+          )
         end
 
         def work_dir
@@ -55,16 +61,6 @@ module Schematic
           logger = Logger.new($stdout)
           logger.level = options[:log_level]
           logger
-        end
-
-        def init_client
-          Sequel.connect(
-            database_url,
-            loggers: [init_logger],
-            log_sql: options[:log_sql],
-            sql_log_level: options[:sql_log_level],
-            reconnect: true
-          )
         end
 
         def database_url

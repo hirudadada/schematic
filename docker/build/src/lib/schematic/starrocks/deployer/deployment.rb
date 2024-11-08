@@ -32,7 +32,6 @@ module Schematic
         def deploy_all(resource_types = nil)
           deploy_resource_types(resource_types)
         rescue StandardError => e
-          deployer.logger.error("Error during deployment: #{e.message}")
           deployer.logger.error("Stopping deployment")
           exit(1)  # Stop deployment with error status
         end
@@ -63,22 +62,17 @@ module Schematic
               deployer.logger.debug("Deploying SQL resource: #{name}")
               deploy_resource(task, name, resource, :sql)
             when 'yaml', 'yml'
-              begin
-                deployer.logger.debug("Reading YAML file: #{file}")
-                content = File.read(file)
-                deployer.logger.debug("YAML content: #{content}")
-                if content.nil? || content.strip.empty?
-                  deployer.logger.error("Empty YAML file: #{file}")
-                  next
-                end
-                yaml = YAML.load(content, permitted_classes: [Symbol])
-                yaml = symbolize_keys(yaml) if yaml.is_a?(Hash)
-                deployer.logger.debug("Parsed YAML: #{yaml.inspect}")
-                deploy_resource(task, name, yaml, :yaml)
-              rescue => e
-                deployer.logger.error("Error loading YAML file: #{e.message}")
-                deployer.logger.error(e.backtrace.join("\n"))
+              deployer.logger.debug("Reading YAML file: #{file}")
+              content = File.read(file)
+              deployer.logger.debug("YAML content: #{content}")
+              if content.nil? || content.strip.empty?
+                deployer.logger.error("Empty YAML file: #{file}")
+                next
               end
+              yaml = YAML.load(content, permitted_classes: [Symbol])
+              yaml = symbolize_keys(yaml) if yaml.is_a?(Hash)
+              deployer.logger.debug("Parsed YAML: #{yaml.inspect}")
+              deploy_resource(task, name, yaml, :yaml)
             end
           end
         end
@@ -102,9 +96,6 @@ module Schematic
             deployer.deploy_resource(resource)
           rescue StandardError => e
             deployer.logger.error("Error deploying resource: #{e.message}")
-            deployer.logger.error(e.backtrace.join("\n"))
-            deployer.logger.info("Attempting to reconnect...")
-            deployer.client # This will trigger a reconnection since client is memoized
             raise  # Re-raise to stop deployment
           end
         end
