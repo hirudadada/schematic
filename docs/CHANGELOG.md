@@ -1,22 +1,29 @@
-## [0.8.4] (2024-11-07)
+## [0.8.5] (2024-11-07)
 
-* Improved database setup and initialization
-  - Added base database setup module for all databases
-  - Added database-specific setup extensions
-  - Moved table creation to appropriate modules
-  - Improved initialization flow
-* Enhanced StarRocks Routine Load
-  - Moved routine load migrations table setup to Database::StarRocks::Setup
-  - Improved migration strategy table handling
-  - Added consistent database initialization
-  - Fixed deployment error handling
-* Updated documentation
-  - Added detailed deployment flow documentation
-  - Updated project structure guide
-  - Added database setup information
-
-## [0.8.2] (2024-10-31)
-
+* Refactored database setup initialization
+  - Separated schema_migrations and routine_load_migrations table creation
+  - Made routine_load_migrations table creation on-demand
+  - Improved initialization flow in Migrator and Deployer
+  - Better separation of concerns in setup modules
+* Enhanced StarRocks support
+  - Moved routine load table creation to migration strategy
+  - Improved table creation timing
+  - Better resource initialization control
+* Added StarRocks 3.2.10 compatibility
+  - Updated table creation syntax for StarRocks 3.2.10
+  - Modified schema_migrations and routine_load_migrations table definitions
+  - Added DISTRIBUTED BY HASH clause for table creation
+  - Standardized PRIMARY KEY definitions
+* Fixed database setup modules
+  - Consolidated table creation syntax across setup files
+  - Removed duplicate PRIMARY KEY definitions
+  - Updated StarRocks table creation in Database::Setup
+  - Improved table creation consistency
+* Enhanced database initialization
+  - Added database-type specific setup handling in Migrator
+  - Improved StarRocks setup in Deployer
+  - Added proper routine load migrations table initialization
+  - Better separation of database-specific setup logic
 * Added StarRocks Routine Load feature
   - Added migration-style deployment system for Routine Load
   - Added type checking with dry-types
@@ -25,17 +32,13 @@
   - Added cluster configuration management
   - Added deployment strategies (Migration/AutoStop/UserDefined)
   - Added migration tracking in database
-* Enhanced StarRocks support
-  - Added cluster.env for Kafka and Schema Registry configuration
-  - Added type validation for configurations
-  - Added migration tracking in database
-  - Added routine load migrations table
+* Updated documentation
+  - Added detailed deployment flow documentation
+  - Updated project structure guide
+  - Added database setup information
 * Updated documentation for Routine Load feature
 * Fixed StarRocks table creation syntax
 * Added proper error handling for deployments
-
-## [0.8.1] (2024-10-02)
-
 * Added support for StarRocks
 * Implemented Makefile handlers for StarRocks project creation
 * Added Docker Compose setup for StarRocks development environment

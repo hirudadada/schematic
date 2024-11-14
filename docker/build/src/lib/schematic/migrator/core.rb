@@ -105,7 +105,14 @@ module Schematic
     end
 
     def ensure_database_setup
-      Database::Setup.ensure_migrations_table(db_connection)
+      case options[:db_type].to_s
+      when 'mssql'
+        Database::Mssql::Setup.ensure_migrations_table(db_connection)
+      when 'mysql'  # For StarRocks
+        Database::StarRocks::Setup.ensure_migrations_table(db_connection)
+      else
+        Database::Setup.ensure_migrations_table(db_connection)
+      end
     end
   end
 end

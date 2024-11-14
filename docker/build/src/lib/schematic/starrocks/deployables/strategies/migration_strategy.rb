@@ -7,7 +7,7 @@ module Schematic
         class MigrationStrategy < RoutineLoadDeploymentStrategy
           def execute(client, statements, load_info)
             # Ensure migrations table exists if we're using migration strategy
-            States::MigrationTracker.ensure_migrations_table(client)
+            Database::StarRocks::Setup.ensure_routine_load_migrations_table(client)
 
             # Extract migration info from filename
             info = Templates::Naming.extract_info_from_filename(@name)

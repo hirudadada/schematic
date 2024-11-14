@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   filename VARCHAR(255) NOT NULL
 )
 ENGINE=olap
-PRIMARY KEY (filename);
+PRIMARY KEY(filename)
+DISTRIBUTED BY HASH(filename);
 END_SQL
 )
 

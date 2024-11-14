@@ -91,7 +91,7 @@ module Schematic
         end
 
         def ensure_database_setup
-          Database::Setup.ensure_migrations_table(client)
+          Database::StarRocks::Setup.ensure_migrations_table(client)
         end
       end
     end

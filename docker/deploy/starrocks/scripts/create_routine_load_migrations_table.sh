@@ -21,11 +21,8 @@ CREATE TABLE IF NOT EXISTS routine_load_migrations (
   applied_at DATETIME
 )
 ENGINE=olap
-PRIMARY KEY (id)
-DISTRIBUTED BY HASH(id)
-PROPERTIES (
-  "replication_num" = "1"
-);
+PRIMARY KEY(id)
+DISTRIBUTED BY HASH(id);
 END_SQL
 )
 

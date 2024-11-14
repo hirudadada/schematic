@@ -19,11 +19,8 @@ module Schematic
                 applied_at DATETIME
               )
               ENGINE=olap
-              PRIMARY KEY (id)
-              DISTRIBUTED BY HASH(id)
-              PROPERTIES (
-                "replication_num" = "1"
-              );
+              PRIMARY KEY(id)
+              DISTRIBUTED BY HASH(id);
             SQL
           end
 
@@ -63,4 +60,4 @@ module Schematic
       end
     end
   end
-end 
+end

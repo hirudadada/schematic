@@ -109,7 +109,7 @@ rake starrocks:routine_load:deploy
 - Added routine load state tracking
 - Added migration tracking table
 
-## [0.8.3] (2024-11-07)
+## [0.8.5] (2024-11-07)
 
 * Added Database Setup Module
   - Added base database setup functionality
@@ -124,3 +124,21 @@ rake starrocks:routine_load:deploy
   - Added database setup details
   - Updated deployment flow documentation
   - Added initialization information
+
+## [0.8.5]
+
+### Database Compatibility
+- Added support for StarRocks 3.2.10
+  - Updated table creation syntax
+  - Modified distribution and primary key definitions
+  - Standardized table creation across modules
+  - Improved backwards compatibility
+
+### Table Definitions
+- Updated schema_migrations table
+  - Added DISTRIBUTED BY HASH clause
+  - Standardized PRIMARY KEY definition
+- Updated routine_load_migrations table
+  - Removed NOT NULL constraints for flexibility
+  - Added proper distribution definition
+  - Standardized table creation syntax

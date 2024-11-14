@@ -59,7 +59,8 @@ module Schematic
               filename VARCHAR(255) NOT NULL
             )
             ENGINE=olap
-            PRIMARY KEY (filename);
+            PRIMARY KEY(filename)
+            DISTRIBUTED BY HASH(filename);
           SQL
         end
       end
