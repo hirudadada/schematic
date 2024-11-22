@@ -41,12 +41,20 @@ module Schematic
             SQL
           end
 
-          def self.migration_applied?(client, version, operation)
+          def self.migration_applied?(client, name, operation)
+            # Extract info from filename
+            info = Templates::Naming.extract_info_from_filename(name)
+            
             result = client.fetch(<<~SQL).first
-              SELECT 1 FROM #{MIGRATIONS_TABLE}
-              WHERE version = '#{version}' AND operation = '#{operation}';
+              SELECT COUNT(*) as count 
+              FROM #{MIGRATIONS_TABLE} 
+              WHERE version = '#{info[:timestamp]}' 
+              AND table_name = '#{info[:table]}' 
+              AND routine_name = '#{info[:routine_name]}' 
+              AND operation = '#{operation}';
             SQL
-            !result.nil?
+            
+            result[:count] > 0
           end
 
           def self.get_migrations(client)

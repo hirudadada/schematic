@@ -16,8 +16,8 @@ module Schematic
             operation = load_info[:operation].to_s
 
             # Skip if already applied
-            if States::MigrationTracker.migration_applied?(client, info[:timestamp], operation)
-              logger.info("Migration #{info[:timestamp]} operation #{operation} already applied, skipping...")
+            if States::MigrationTracker.migration_applied?(client, @name, operation)
+              logger.info("Migration #{info[:timestamp]} #{table_name}:#{routine_name} operation #{operation} already applied, skipping...")
               return
             end
 
