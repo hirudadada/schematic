@@ -9,11 +9,11 @@ module Schematic
 
         def initialize(table_name, operation = :create, provider = nil)
           routine_name = Naming.generate_routine_name(table_name)
-          migration_name = Naming.generate_migration_name(table_name, operation)
+          @provider = provider || Providers::RoutineLoadConfigProvider.create
+          migration_name = Naming.generate_migration_name(table_name, @provider.db_name, operation)
           
           super(migration_name, :routine_load)
           @operation = operation
-          @provider = provider || Providers::RoutineLoadConfigProvider.create
           @columns = DEFAULT_COLUMNS
           @table = table_name
           @routine_name = routine_name

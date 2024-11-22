@@ -3,20 +3,21 @@ module Schematic
     module Templates
       module Naming
         def self.generate_routine_name(table_name)
-          "rl_#{table_name}"
+          "#{table_name}_rl"
         end
 
-        def self.generate_migration_name(table_name, operation, timestamp = Time.now.strftime('%Y%m%d%H%M%S'))
-          "#{timestamp}_#{operation}_#{table_name}_routine_load"
+        def self.generate_migration_name(table_name, db_name, operation, timestamp = Time.now.strftime('%Y%m%d%H%M%S'))
+          "#{timestamp}_#{operation}_#{db_name}_#{table_name}_routine_load"
         end
 
         def self.extract_info_from_filename(filename)
-          # Example: "20241107092547_create_example_table_routine_load.sql"
+          # Example: "20241107092547_create_schematic_example_table_routine_load.sql"
           basename = File.basename(filename, '.*')
-          timestamp, operation, table_name, *_ = basename.split('_')
+          timestamp, operation, db_name, table_name, *_ = basename.split('_')
           {
             timestamp: timestamp,
             operation: operation,
+            db_name: db_name,
             table_name: table_name
           }
         end

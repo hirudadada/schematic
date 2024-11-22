@@ -45,7 +45,7 @@ module Schematic
                 version: version
               }]
             else
-              match = /FOR\s+`(?<routine_name>rl_[\w]+)`/i.match(sql)
+              match = /FOR\s+`?(?<routine_name>rl_[\w]+)`?/i.match(sql)
               raise DeploymentError, "Cannot extract routine load info from SQL" unless match
               
               Types::RoutineLoadInfo[{
@@ -118,18 +118,18 @@ module Schematic
         include DeploymentMethods
 
         ALLOWED_SQL_PATTERNS = [
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`[\w.]+`\.)?`(?<routine_name>rl_[\w]+)`\s+ON\s+`(?<table_name>[\w]+)`/i,
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[\w.]+`?\.)?`?(?<routine_name>[\w]+_rl)`?\s+ON\s+`?(?<table_name>[\w]+)`?/i,
           /\s+COLUMNS\s*\([^)]+\)/i,
           /\s+PROPERTIES\s*\([^)]+\)/i
         ].freeze
 
         ALLOWED_COMMANDS = [
           /\AUSE\s+\w+/i,
-          /\ACREATE\s+ROUTINE\s+LOAD/i,
-          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
-          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
-          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i,
-          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`[\w.]+`)?(?:\s+FOR\s+`(?<routine_name>rl_[\w]+)`)/i
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[\w.]+`?\.)?`?(?<routine_name>[\w]+_rl)`?\s+ON\s+`?(?<table_name>[\w]+)`?/i,
+          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
+          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
+          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
+          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i
         ].freeze
 
         FORBIDDEN_PATTERNS = [
