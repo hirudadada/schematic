@@ -125,7 +125,7 @@ rake starrocks:routine_load:deploy
   - Updated deployment flow documentation
   - Added initialization information
 
-## [0.8.5]
+## [0.8.4]
 
 ### Database Compatibility
 - Added support for StarRocks 3.2.10
