@@ -50,7 +50,7 @@ module Schematic
               # Simple operations only need routine_name
               client.run("#{data[:operation].to_s.upcase} ROUTINE LOAD FOR `#{data[:routine_name]}`;")
             else
-              raise AnalyzingError, "Unsupported operation: #{data[:operation]}"
+              raise Schematic::Starrocks::RoutineLoadError, "Unsupported operation: #{data[:operation]}"
             end
           end
 

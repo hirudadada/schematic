@@ -17,7 +17,7 @@ module Schematic
 
           def extract_create_statement(statements)
             create_stmt = statements.find { |stmt| stmt.match?(/\ACREATE\s+ROUTINE\s+LOAD/i) }
-            raise DeploymentError, "No CREATE ROUTINE LOAD statement found" unless create_stmt
+            raise Schematic::Starrocks::RoutineLoadError, "No CREATE ROUTINE LOAD statement found" unless create_stmt
             Types::StrictString[create_stmt]
           end
 
@@ -35,7 +35,7 @@ module Schematic
 
             if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
               match = ALLOWED_SQL_PATTERNS.first.match(sql)
-              raise DeploymentError, "Cannot extract routine load info from CREATE SQL" unless match
+              raise Schematic::Starrocks::ValidationError, "Cannot extract routine load info from CREATE SQL" unless match
 
               Types::RoutineLoadInfo[{
                 db_name: options[:provider]&.db_name || 'schematic',
@@ -63,13 +63,13 @@ module Schematic
           def validate_statements!(statements)
             statements.each do |stmt|
               unless ALLOWED_COMMANDS.any? { |pattern| stmt.match?(pattern) }
-                raise DeploymentError, "Invalid routine load command: #{stmt}"
+                raise Schematic::Starrocks::ValidationError, "Invalid routine load command: #{stmt}"
               end
 
               if stmt.match?(/FROM\s+`([^`]+)`/i)
                 db_name = $1
                 unless db_name == options[:provider]&.db_name
-                  raise DeploymentError, "Cannot access database: #{db_name}"
+                  raise Schematic::Starrocks::ValidationError, "Cannot access database: #{db_name}"
                 end
               end
             end
@@ -82,13 +82,13 @@ module Schematic
           def validate_create_statement!(create_stmt)
             FORBIDDEN_PATTERNS.each do |pattern|
               if create_stmt.match?(pattern)
-                raise DeploymentError, "SQL contains forbidden pattern: #{pattern.source}"
+                raise Schematic::Starrocks::ValidationError, "SQL contains forbidden pattern: #{pattern.source}"
               end
             end
 
             ALLOWED_SQL_PATTERNS.each do |pattern|
               unless create_stmt.match?(pattern)
-                raise DeploymentError, "SQL must contain required pattern: #{pattern.source}"
+                raise Schematic::Starrocks::ValidationError, "SQL must contain required pattern: #{pattern.source}"
               end
             end
           end
@@ -160,8 +160,8 @@ module Schematic
 
         def validate_sql_syntax!
           sql = data.to_s.strip
-          raise DeploymentError, 'SQL statement cannot be empty' if sql.empty?
-          raise DeploymentError, 'SQL statement is too long' if sql.length > 10000
+          raise Schematic::Starrocks::ValidationError, 'SQL statement cannot be empty' if sql.empty?
+          raise Schematic::Starrocks::ValidationError, 'SQL statement is too long' if sql.length > 10000
 
           statements = parse_statements(sql)
           validate_statements!(statements)
