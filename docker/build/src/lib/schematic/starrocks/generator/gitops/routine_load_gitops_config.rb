@@ -4,6 +4,8 @@ module Schematic
   module Starrocks
     module Generator
       class RoutineLoadGitOpsConfig < Schematic::Generator::GitOpsConfig
+        attr_reader :cluster_properties, :cluster_credentials
+
         def generate
           generate_gitops_dir
           render_cipher_configmap
@@ -45,15 +47,29 @@ module Schematic
           File.join(__dir__, 'templates', 'overlays', 'dev', 'configmap')
         end
 
+        def kafka_sasl_password_encrypted
+          ENV['KAFKA_SASL_PASSWORD'].nil? ||
+          ENV['KAFKA_SASL_PASSWORD_ENCRYPTED'].empty? ?
+            Schematic::Cipher.new.encrypt(ENV['KAFKA_SASL_PASSWORD']) :
+            ENV['KAFKA_SASL_PASSWORD_ENCRYPTED']
+        end
+
+        def schema_registry_password_encrypted
+          ENV['SCHEMA_REGISTRY_PASSWORD'].nil? ||
+          ENV['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED'].empty? ?
+            Schematic::Cipher.new.encrypt(ENV['SCHEMA_REGISTRY_PASSWORD']) :
+            ENV['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED']
+        end
+
         def cluster_credentials
-          {
+          @cluster_credentials ||= {
             # Kafka Configuration
             'KAFKA_BROKER_LIST' => ENV.fetch('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092'),
             'KAFKA_SECURITY_PROTOCOL' => ENV.fetch('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL'),
             'KAFKA_SASL_MECHANISM' => ENV.fetch('KAFKA_SASL_MECHANISM', 'PLAIN'),
             'KAFKA_SASL_USERNAME' => ENV.fetch('KAFKA_SASL_USERNAME', 'kafka_user'),
-            'KAFKA_SASL_PASSWORD' => ENV.fetch('KAFKA_SASL_PASSWORD', ''),
-            'KAFKA_SASL_PASSWORD_ENCRYPTED' => ENV['KAFKA_SASL_PASSWORD_ENCRYPTED'],
+            # 'KAFKA_SASL_PASSWORD' => ENV.fetch('KAFKA_SASL_PASSWORD', ''),
+            'KAFKA_SASL_PASSWORD_ENCRYPTED' => kafka_sasl_password_encrypted,
             'KAFKA_SSL_VERIFY' => ENV.fetch('KAFKA_SSL_VERIFY', 'false'),
             'KAFKA_PARTITIONS' => ENV.fetch('KAFKA_PARTITIONS', '0,1,2'),
             'KAFKA_OFFSET' => ENV.fetch('KAFKA_OFFSET', 'OFFSET_BEGINNING'),
@@ -61,14 +77,13 @@ module Schematic
             # Schema Registry Configuration
             'SCHEMA_REGISTRY_URL' => ENV.fetch('SCHEMA_REGISTRY_URL', 'schema-registry:8081'),
             'SCHEMA_REGISTRY_USERNAME' => ENV.fetch('SCHEMA_REGISTRY_USERNAME', 'registry_user'),
-            'SCHEMA_REGISTRY_PASSWORD' => ENV.fetch('SCHEMA_REGISTRY_PASSWORD', ''),
-            'SCHEMA_REGISTRY_PASSWORD_ENCRYPTED' => ENV['SCHEMA_REGISTRY_PASSWORD_ENCRYPTED'],
-
+            # 'SCHEMA_REGISTRY_PASSWORD' => ENV.fetch('SCHEMA_REGISTRY_PASSWORD', ''),
+            'SCHEMA_REGISTRY_PASSWORD_ENCRYPTED' => schema_registry_password_encrypted,
           }
         end
 
         def cluster_properties
-          {
+          @cluster_properties ||= {
             # Routine Load Properties
             'ROUTINE_LOAD_CONCURRENT_NUMBER' => ENV.fetch('ROUTINE_LOAD_CONCURRENT_NUMBER', '3'),
             'ROUTINE_LOAD_FORMAT' => ENV.fetch('ROUTINE_LOAD_FORMAT', 'json'),
