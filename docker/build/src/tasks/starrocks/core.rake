@@ -11,7 +11,7 @@ namespace :starrocks do
         log_level: ENV['LOG_LEVEL']&.to_i || Logger::INFO,
         sql_log_level: ENV['SQL_LOG_LEVEL']&.to_sym || :debug,
         resource_dir: ENV['RESOURCE_DIR'] || 'db/starrocks',
-        work_dir: ENV['WORK_DIR']&.strip&.empty? ? nil : string&.strip
+        work_dir: ENV['WORK_DIR']&.strip&.empty? ? nil : ENV['WORK_DIR']&.strip
       )
 
       resource_repo = Schematic::Starrocks::Deployables::DeployableResourceRepository.new
