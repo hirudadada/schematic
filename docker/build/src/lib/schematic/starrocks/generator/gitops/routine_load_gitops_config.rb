@@ -17,6 +17,7 @@ module Schematic
           generate_by_template(
             File.join(dev_configmap_dir, 'routine-load-credentials.yaml'),
             File.join(routine_load_templates_dir, 'routine-load-credentials.yaml.erb'),
+            # File.join(routine_load_templates_dir, 'overlays/dev/configmap/routine-load-credentials.yaml.erb'),
             binding
           )
         end
@@ -25,6 +26,7 @@ module Schematic
           generate_by_template(
             File.join(dev_configmap_dir, 'routine-load-properties.yaml'),
             File.join(routine_load_templates_dir, 'routine-load-properties.yaml.erb'),
+            # File.join(routine_load_templates_dir, 'overlays/dev/configmap/routine-load-properties.yaml.erb'),
             binding
           )
         end

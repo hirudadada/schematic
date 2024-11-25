@@ -1,0 +1,5 @@
+---
+:table: example_table
+:routine_name: example_table_rl
+:db: schematic
+:operation: :pause

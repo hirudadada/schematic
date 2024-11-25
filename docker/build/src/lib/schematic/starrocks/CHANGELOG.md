@@ -109,22 +109,6 @@ rake starrocks:routine_load:deploy
 - Added routine load state tracking
 - Added migration tracking table
 
-## [0.8.5] (2024-11-07)
-
-* Added Database Setup Module
-  - Added base database setup functionality
-  - Added StarRocks-specific table creation
-  - Moved routine load migrations table setup
-  - Improved initialization flow
-* Enhanced Migration Strategy
-  - Moved table creation to setup module
-  - Improved error handling
-  - Added consistent table initialization
-* Updated Documentation
-  - Added database setup details
-  - Updated deployment flow documentation
-  - Added initialization information
-
 ## [0.8.4]
 
 ### Database Compatibility
@@ -142,3 +126,68 @@ rake starrocks:routine_load:deploy
   - Removed NOT NULL constraints for flexibility
   - Added proper distribution definition
   - Standardized table creation syntax
+
+## [0.8.5] (2024-11-07)
+
+* Added Database Setup Module
+  - Added base database setup functionality
+  - Added StarRocks-specific table creation
+  - Moved routine load migrations table setup
+  - Improved initialization flow
+* Enhanced Migration Strategy
+  - Moved table creation to setup module
+  - Improved error handling
+  - Added consistent table initialization
+* Updated Documentation
+  - Added database setup details
+  - Updated deployment flow documentation
+  - Added initialization information
+
+## [0.8.6] (2024-11-23)
+
+### Error Handling for Developers
+- Enhanced error handling for routine load operations
+  - State transformation errors now provide clear messages
+  - Connection errors include retry information
+  - Improved logging for troubleshooting
+
+### Common Error Scenarios & Solutions
+1. State Transformation Errors
+   ```sql
+   -- Error: Cannot transform from RUNNING to PAUSED
+   -- Solution: Check current state before pausing
+   SHOW ROUTINE LOAD FROM `db_name` WHERE NAME = 'routine_name';
+   ```
+
+2. Connection Issues
+   - System retries automatically (3 attempts)
+   - Logs show retry attempts and connection status
+   - Check StarRocks connectivity if persistent
+
+3. Malformed Packet Errors
+   - Usually temporary, system will retry
+   - If persistent, verify SQL statement format
+   - Check for special characters in routine names
+
+### Logging Improvements
+- Added detailed logging for error diagnosis
+  - Current state logging before operations
+  - Clear state transition messages
+  - Connection retry attempt tracking
+  - Error context in log messages
+
+### Developer Guidelines
+1. Error Handling Best Practices
+   - Always check routine load state before operations
+   - Use provided logging for troubleshooting
+   - Allow retry mechanism to handle temporary issues
+
+2. Deployment Recommendations
+   - Use migration versioning for state changes
+   - Monitor logs during deployments
+   - Handle state conflicts gracefully
+
+3. Testing Guidelines
+   - Test state transitions thoroughly
+   - Verify error handling in local environment
+   - Use provided test helpers for common scenarios

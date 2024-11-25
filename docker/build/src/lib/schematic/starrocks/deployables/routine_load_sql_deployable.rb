@@ -31,7 +31,7 @@ module Schematic
                         else ''
                         end
 
-            version = name.split('_').first
+            version = name.split('-').first
 
             if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
               match = ALLOWED_SQL_PATTERNS.first.match(sql)
@@ -45,14 +45,16 @@ module Schematic
                 version: version
               }]
             else
-              match = /FOR\s+`?(?<routine_name>rl_[\w]+)`?/i.match(sql)
-              raise DeploymentError, "Cannot extract routine load info from SQL" unless match
+              match = /FOR\s+`?(?<routine_name>[^`\s]+)`?/i.match(sql)
+              raise Schematic::Starrocks::ValidationError, "Cannot extract routine load info from SQL" unless match
+              
+              table_name = match[:routine_name].sub(/_rl$/, '')
               
               Types::RoutineLoadInfo[{
                 db_name: options[:provider]&.db_name || 'schematic',
                 routine_name: match[:routine_name],
                 operation: operation,
-                table_name: nil,
+                table_name: table_name,
                 version: version
               }]
             end
@@ -107,29 +109,23 @@ module Schematic
               logger.info("Altered routine load")
             end
           end
-
-          def select_deployment_strategy(statements)
-            has_stop = statements.any? { |stmt| stmt.match?(/\ASTOP\s+ROUTINE\s+LOAD/i) }
-            strategy_class = has_stop ? Strategies::UserDefinedStopStrategy : Strategies::AutoStopStrategy
-            strategy_class.new(options)
-          end
         end
 
         include DeploymentMethods
 
         ALLOWED_SQL_PATTERNS = [
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[\w.]+`?\.)?`?(?<routine_name>[\w]+_rl)`?\s+ON\s+`?(?<table_name>[\w]+)`?/i,
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[^`\s]+`?\.)?`?(?<routine_name>[^`\s]+)`?\s+ON\s+`?(?<table_name>[^`\s]+)`?/i,
           /\s+COLUMNS\s*\([^)]+\)/i,
           /\s+PROPERTIES\s*\([^)]+\)/i
         ].freeze
 
         ALLOWED_COMMANDS = [
-          /\AUSE\s+\w+/i,
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[\w.]+`?\.)?`?(?<routine_name>[\w]+_rl)`?\s+ON\s+`?(?<table_name>[\w]+)`?/i,
-          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
-          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
-          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i,
-          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[\w.]+`?)?(?:\s+FOR\s+`?(?<routine_name>[\w]+_rl)`?)/i
+          /\AUSE\s+[^;\s]+/i,
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[^`\s]+`?\.)?`?(?<routine_name>[^`\s]+)`?\s+ON\s+`?(?<table_name>[^`\s]+)`?/i,
+          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
+          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
+          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
+          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i
         ].freeze
 
         FORBIDDEN_PATTERNS = [
@@ -149,18 +145,15 @@ module Schematic
             statements = parse_statements(data)
             validate_statements!(statements)
 
-            if has_create_statement?(statements)
-              create_stmt = extract_create_statement(statements)
-              load_info = extract_load_info(create_stmt)
-              strategy = @strategy || select_deployment_strategy(statements)
-              strategy.execute(client, statements, load_info)
-            else
-              statements.each do |stmt|
-                logger.debug("Executing routine load command: #{stmt}") if logger.debug?
-                client.run(stmt)
-                log_command_execution(stmt)
-              end
-            end
+            load_info = if has_create_statement?(statements)
+                          create_stmt = extract_create_statement(statements)
+                          extract_load_info(create_stmt)
+                        else
+                          extract_load_info(statements.first)
+                        end
+
+            strategy = @strategy || Strategies.create(options)
+            strategy.execute(client, statements, load_info)
           end
           logger.info("Deployed #{name}")
         end

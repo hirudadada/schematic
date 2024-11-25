@@ -17,21 +17,70 @@ module Schematic
 
         def deploy_resource(resource)
           logger.info("Deploying resource...")
-          resource.deploy(client)
+          with_connection do |client|
+            resource.deploy(client)
+          end
           logger.info("Resource deployed successfully")
-        rescue AnalyzingError => e
-          logger.error("An unexpected error occurred: #{e.message}")
+        rescue Schematic::Starrocks::ConnectionError => e
+          logger.error("Connection error: #{e.message}")
+          raise
+        rescue Schematic::Starrocks::StateTransformationError => e
+          logger.error("State transformation error: #{e.message}")
+          raise
+        rescue Schematic::Starrocks::RoutineLoadError => e
+          logger.error("Routine load error: #{e.message}")
+          raise
+        rescue StandardError => e
+          logger.error("Unexpected error: #{e.message}")
           raise
         end
 
         def client
-          Sequel.connect(
-            database_url,
-            loggers: [init_logger],
-            log_sql: options[:log_sql],
-            sql_log_level: options[:sql_log_level],
-            reconnect: true
-          )
+          @client ||= begin
+            return options[:client] if options[:client]  # Keep this for testing
+
+            connection_options = {
+              adapter: 'mysql2',
+              host: ENV.fetch('DB_HOST', 'dev.db'),
+              port: ENV.fetch('DB_PORT', '9030').to_i,
+              user: ENV.fetch('DB_USER', 'root'),
+              password: ENV.fetch('DB_PASSWORD', ''),
+              database: ENV.fetch('DB_NAME', 'schematic'),
+              read_timeout: 300,
+              connect_timeout: 60,
+              reconnect: true,
+              pool_timeout: 30,
+              max_connections: 5,
+              loggers: [logger],
+              log_sql: true,
+              sql_log_level: :debug
+            }
+
+            db = Sequel.connect(connection_options)
+            db.extension :connection_validator
+            db.pool.connection_validation_timeout = 30
+            db
+          end
+        end
+
+        def with_connection(&block)
+          retries = 0
+          max_retries = 3
+          begin
+            yield client
+          rescue Sequel::DatabaseDisconnectError, Mysql2::Error::ConnectionError => e
+            retries += 1
+            if retries <= max_retries
+              logger.warn("Connection lost, attempting to reconnect (#{retries}/#{max_retries})")
+              sleep(2 * retries)
+              @client&.disconnect rescue nil
+              @client = nil
+              retry
+            else
+              logger.error("Failed to reconnect after #{max_retries} attempts")
+              raise
+            end
+          end
         end
 
         def work_dir
@@ -91,7 +140,12 @@ module Schematic
         end
 
         def ensure_database_setup
-          Database::StarRocks::Setup.ensure_migrations_table(client)
+          return if options[:skip_setup]  # Add this for testing if needed
+          with_connection { |client| Database::StarRocks::Setup.ensure_migrations_table(client) }
+        end
+
+        def setup_connection(conn)
+          conn
         end
       end
     end

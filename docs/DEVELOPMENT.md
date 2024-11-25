@@ -169,9 +169,6 @@ make up
 
 # Access development shell
 make shell
-
-# Run tests
-make test
 ```
 
 For more details on specific features:

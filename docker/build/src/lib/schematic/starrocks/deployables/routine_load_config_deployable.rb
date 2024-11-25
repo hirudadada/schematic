@@ -57,6 +57,7 @@ module Schematic
           def create_routine_load_sql(data)
             # Validate and ensure required fields
             data = data.merge(
+              db: data[:db] || options[:provider]&.db_name,
               columns: data[:columns] || DEFAULT_COLUMNS,
               properties: data[:properties] || {}
             )
@@ -131,10 +132,10 @@ module Schematic
           end
 
           def extract_load_info(data)
-            version = name.split('_').first
+            version = name.split('-').first
 
             Types::RoutineLoadInfo[{
-              db_name: options[:provider]&.db_name || 'schematic',
+              db_name: data[:db] || options[:provider]&.db_name || 'schematic',
               routine_name: data[:routine_name],
               operation: data[:operation].to_s,
               table_name: data[:table],
@@ -150,16 +151,10 @@ module Schematic
           
           client.transaction do
             client.run("USE #{provider.db_name};")
-
-            if data[:operation].to_sym == :create && !@strategy
-              check_and_stop_existing(client, provider.db_name, data[:routine_name])
-            end
-
-            if @strategy
-              @strategy.execute(client, [build_sql], data)
-            else
-              execute_operation(client, data)
-            end
+            
+            load_info = extract_load_info(data)
+            strategy = @strategy || Strategies.create(options)
+            strategy.execute(client, [build_sql], load_info)
           end
           logger.info("Deployed routine load operation: #{data[:operation]} for #{data[:routine_name]}")
         end

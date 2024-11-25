@@ -17,6 +17,7 @@ module Schematic
           @columns = DEFAULT_COLUMNS
           @table = table_name
           @routine_name = routine_name
+          @db = @provider.db_name
         end
 
         def create
@@ -42,6 +43,7 @@ module Schematic
           {
             table: @table,
             routine_name: @routine_name,
+            db: @db,
             operation: @operation,
             columns: @columns,
             kafka: {
@@ -72,6 +74,7 @@ module Schematic
           {
             table: @table,
             routine_name: @routine_name,
+            db: @db,
             operation: @operation
           }
         end
@@ -80,6 +83,7 @@ module Schematic
           {
             table: @table,
             routine_name: @routine_name,
+            db: @db,
             operation: @operation
           }
         end
@@ -88,6 +92,7 @@ module Schematic
           {
             table: @table,
             routine_name: @routine_name,
+            db: @db,
             operation: @operation
           }
         end
@@ -96,6 +101,7 @@ module Schematic
           {
             table: @table,
             routine_name: @routine_name,
+            db: @db,
             operation: @operation,
             properties: DEFAULT_PROPERTIES.select { |k, _| ALTERABLE_PROPERTIES.include?(k) }
           }

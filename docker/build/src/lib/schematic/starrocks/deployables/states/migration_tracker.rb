@@ -49,8 +49,7 @@ module Schematic
               SELECT COUNT(*) as count 
               FROM #{MIGRATIONS_TABLE} 
               WHERE version = '#{info[:timestamp]}' 
-              AND table_name = '#{info[:table]}' 
-              AND routine_name = '#{info[:routine_name]}' 
+              AND table_name = '#{info[:table_name]}' 
               AND operation = '#{operation}';
             SQL
             

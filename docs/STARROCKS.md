@@ -98,7 +98,7 @@ For YAML migrations:
 ```yaml
 # 20240107000000_create_example_table_routine_load.yaml
 :table: example_table
-:routine_name: rl_example_table
+:routine_name: example_table_rl
 :operation: :create
 :columns:
   - uid
@@ -125,7 +125,7 @@ For YAML migrations:
 For SQL migrations:
 ```sql
 -- 20240107000000_create_example_table_routine_load.sql
-CREATE ROUTINE LOAD `rl_example_table` ON `example_table`
+CREATE ROUTINE LOAD `example_table_rl` ON `example_table`
 COLUMNS TERMINATED BY ',',
 COLUMNS (uid, column1, column2)
 PROPERTIES
