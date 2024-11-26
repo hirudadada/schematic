@@ -191,3 +191,8 @@ rake starrocks:routine_load:deploy
    - Test state transitions thoroughly
    - Verify error handling in local environment
    - Use provided test helpers for common scenarios
+
+## [0.8.7] (2024-11-26)
+
+1. Consolidate retry mechanism
+2. fix inconsistent naming module and update template generation
