@@ -32,13 +32,22 @@ module Schematic
                         end
 
             version = name.split('-').first
+            
+            # Try to extract db_name from SQL first
+            db_name = if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD\s+`?([^`\s.]+)`?\./i)
+                        $1
+                      elsif sql.match?(/FROM\s+`([^`]+)`/i)
+                        $1
+                      else
+                        options[:provider]&.db_name || 'schematic'
+                      end
 
             if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
               match = ALLOWED_SQL_PATTERNS.first.match(sql)
               raise Schematic::Starrocks::ValidationError, "Cannot extract routine load info from CREATE SQL" unless match
 
               Types::RoutineLoadInfo[{
-                db_name: options[:provider]&.db_name || 'schematic',
+                db_name: db_name,
                 routine_name: match[:routine_name],
                 operation: operation,
                 table_name: match[:table_name],
@@ -51,7 +60,7 @@ module Schematic
               table_name = match[:routine_name].sub(/_rl$/, '')
               
               Types::RoutineLoadInfo[{
-                db_name: options[:provider]&.db_name || 'schematic',
+                db_name: db_name,
                 routine_name: match[:routine_name],
                 operation: operation,
                 table_name: table_name,

@@ -11,7 +11,7 @@ module Schematic
 
             # Extract migration info from filename
             info = Templates::Naming.extract_info_from_filename(@name)
-            table_name = load_info[:table_name] || info[:table]
+            table_name = load_info[:table_name] || info[:table_name]
             routine_name = load_info[:routine_name]
             operation = load_info[:operation].to_s
 
@@ -23,7 +23,7 @@ module Schematic
 
             super
 
-            # Record the migration with all fields
+            # Record the migration without db_name
             States::MigrationTracker.record_migration(
               client,
               version: info[:timestamp],

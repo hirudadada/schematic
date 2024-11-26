@@ -10,14 +10,14 @@ module Schematic
         def initialize(table_name, operation = :create, provider = nil)
           @provider = provider || Providers::RoutineLoadConfigProvider.create
           routine_name = Naming.generate_routine_name(table_name)
-          migration_name = Naming.generate_migration_name(table_name, @provider.db_name, operation)
+          migration_name = Naming.generate_migration_name(table_name, operation)
           
           super(migration_name, :routine_load)
           @operation = operation
           @columns = DEFAULT_COLUMNS
-          @table = table_name
+          @table_name = table_name
           @routine_name = routine_name
-          @db = @provider.db_name
+          @db_name = @provider.db_name
         end
 
         def create
@@ -41,14 +41,14 @@ module Schematic
 
         def create_config
           {
-            table: @table,
+            table_name: @table_name,
             routine_name: @routine_name,
-            db: @db,
+            db_name: @db_name,
             operation: @operation,
             columns: @columns,
             kafka: {
               broker_list: '{{KAFKA_BROKER_LIST}}',
-              topic: @table,
+              topic: @table_name,
               partitions: '{{KAFKA_PARTITIONS}}',
               offset: '{{KAFKA_OFFSET}}',
               security: {
@@ -72,36 +72,36 @@ module Schematic
 
         def pause_config
           {
-            table: @table,
+            table_name: @table_name,
             routine_name: @routine_name,
-            db: @db,
+            db_name: @db_name,
             operation: @operation
           }
         end
 
         def resume_config
           {
-            table: @table,
+            table_name: @table_name,
             routine_name: @routine_name,
-            db: @db,
+            db_name: @db_name,
             operation: @operation
           }
         end
 
         def stop_config
           {
-            table: @table,
+            table_name: @table_name,
             routine_name: @routine_name,
-            db: @db,
+            db_name: @db_name,
             operation: @operation
           }
         end
 
         def alter_config
           {
-            table: @table,
+            table_name: @table_name,
             routine_name: @routine_name,
-            db: @db,
+            db_name: @db_name,
             operation: @operation,
             properties: DEFAULT_PROPERTIES.select { |k, _| ALTERABLE_PROPERTIES.include?(k) }
           }

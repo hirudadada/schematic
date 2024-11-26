@@ -9,20 +9,6 @@ module Schematic
         include Concerns::Retryable
         
         module DeploymentMethods
-          def check_and_stop_existing(client, db_name, routine_name)
-            db_name = Types::StrictString[db_name]
-            routine_name = Types::StrictString[routine_name]
-            
-            result = client.fetch("SHOW ROUTINE LOAD FROM `#{db_name}` WHERE NAME = '#{routine_name}'").all
-
-            if result.any?
-              stop_sql = "STOP ROUTINE LOAD FOR `#{routine_name}`"
-              logger.debug("Stopping existing routine load: #{stop_sql}") if logger.debug?
-              client.run(stop_sql)
-              sleep(2)
-            end
-          end
-
           def execute_operation(client, data)
             # For create operation, ensure topic is set
             if data[:operation].to_sym == :create
@@ -57,10 +43,28 @@ module Schematic
             end
           end
 
+          def extract_load_info(data)
+            version = name.split('-').first
+            
+            # Try to get db_name from data first, then provider
+            db_name = data[:db_name] || data[:db] || options[:provider]&.db_name || 'schematic'
+
+            Types::RoutineLoadInfo[{
+              db_name: db_name,
+              routine_name: data[:routine_name],
+              operation: data[:operation].to_s,
+              table_name: data[:table_name] || data[:table],
+              version: version
+            }]
+          end
+
           def create_routine_load_sql(data)
+            # Get db_name from data or provider
+            db_name = data[:db_name] || data[:db] || options[:provider]&.db_name || 'schematic'
+            
             # Validate and ensure required fields
             data = data.merge(
-              db: data[:db] || options[:provider]&.db_name,
+              db_name: db_name,  # Use consistent key name
               columns: data[:columns] || DEFAULT_COLUMNS,
               properties: data[:properties] || {}
             )
@@ -71,7 +75,7 @@ module Schematic
             columns = data[:columns].join(', ')
 
             <<~SQL
-              CREATE ROUTINE LOAD `#{data[:db]}`.`#{data[:routine_name]}` ON `#{data[:table]}`
+              CREATE ROUTINE LOAD `#{data[:db_name]}`.`#{data[:routine_name]}` ON `#{data[:table]}`
               COLUMNS TERMINATED BY ',',
               COLUMNS (#{columns})
               PROPERTIES
@@ -132,18 +136,6 @@ module Schematic
               end
             else value.to_s
             end
-          end
-
-          def extract_load_info(data)
-            version = name.split('-').first
-
-            Types::RoutineLoadInfo[{
-              db_name: data[:db] || options[:provider]&.db_name || 'schematic',
-              routine_name: data[:routine_name],
-              operation: data[:operation].to_s,
-              table_name: data[:table],
-              version: version
-            }]
           end
         end
 
