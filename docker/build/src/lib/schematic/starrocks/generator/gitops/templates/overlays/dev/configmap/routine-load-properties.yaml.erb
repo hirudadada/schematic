@@ -21,3 +21,7 @@ data:
   WORK_DIR: <%= cluster_properties['WORK_DIR'] %>
   LOG_LEVEL: <%= cluster_properties['LOG_LEVEL'] %>
   SQL_LOG_LEVEL: <%= cluster_properties['SQL_LOG_LEVEL'] %>
+
+  # Retry Configuration
+  RETRY_MAX_ATTEMPTS: <%= cluster_properties['RETRY_MAX_ATTEMPTS'] %>
+  RETRY_BASE_DELAY: <%= cluster_properties['RETRY_BASE_DELAY'] %>

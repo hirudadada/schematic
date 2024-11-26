@@ -6,6 +6,8 @@ module Schematic
   module Starrocks
     module Deployables
       class RoutineLoadConfigDeployable < ConfigDeployable
+        include Concerns::Retryable
+        
         module DeploymentMethods
           def check_and_stop_existing(client, db_name, routine_name)
             db_name = Types::StrictString[db_name]
@@ -42,13 +44,14 @@ module Schematic
             case data[:operation].to_sym
             when :create
               sql = create_routine_load_sql(data)
-              client.run(sql)
+              execute_with_retry { client.run(sql) }
             when :alter
               sql = alter_routine_load_sql(data)
-              client.run(sql)
+              execute_with_retry { client.run(sql) }
             when :pause, :resume, :stop
-              # Simple operations only need routine_name
-              client.run("#{data[:operation].to_s.upcase} ROUTINE LOAD FOR `#{data[:routine_name]}`;")
+              execute_with_retry do
+                client.run("#{data[:operation].to_s.upcase} ROUTINE LOAD FOR `#{data[:routine_name]}`;")
+              end
             else
               raise Schematic::Starrocks::RoutineLoadError, "Unsupported operation: #{data[:operation]}"
             end

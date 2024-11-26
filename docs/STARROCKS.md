@@ -74,6 +74,10 @@ RESOURCE_DIR=db/starrocks
 WORK_DIR=db/starrocks
 LOG_LEVEL=1         # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR
 SQL_LOG_LEVEL=debug  # debug, info, warn, error
+
+# Retry Configuration
+RETRY_MAX_ATTEMPTS=3
+RETRY_BASE_DELAY=2
 ```
 
 ## Usage
@@ -212,3 +216,12 @@ Generate GitOps configurations:
 ```bash
 rake starrocks:gitops:generate
 ```
+
+## Retry Configuration
+
+Control retry behavior through environment variables:
+
+- `RETRY_MAX_ATTEMPTS`: Maximum number of retry attempts (default: 3)
+- `RETRY_BASE_DELAY`: Base delay in seconds between retries (default: 2)
+
+The actual delay uses exponential backoff: base_delay * retry_number

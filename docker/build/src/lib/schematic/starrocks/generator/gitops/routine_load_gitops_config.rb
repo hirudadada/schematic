@@ -100,7 +100,11 @@ module Schematic
             'RESOURCE_DIR' => ENV.fetch('RESOURCE_DIR', 'db/starrocks'),
             'WORK_DIR' => ENV.fetch('WORK_DIR', nil),
             'LOG_LEVEL' => ENV.fetch('LOG_LEVEL', '1'),  # Use numeric level (1 = INFO)
-            'SQL_LOG_LEVEL' => ENV.fetch('SQL_LOG_LEVEL', 'debug')
+            'SQL_LOG_LEVEL' => ENV.fetch('SQL_LOG_LEVEL', 'debug'),
+
+            # Retry Configuration
+            'RETRY_MAX_ATTEMPTS' => ENV.fetch('RETRY_MAX_ATTEMPTS', '3'),
+            'RETRY_BASE_DELAY' => ENV.fetch('RETRY_BASE_DELAY', '2')
           }
         end
       end

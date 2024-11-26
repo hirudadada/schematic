@@ -49,13 +49,7 @@ module Schematic
             if params[:options][:migration_mode]
               params[:options][:strategy] = Strategies::MigrationStrategy.new(params[:options], params[:name])
             else
-              # For non-migration mode, only use AutoStopStrategy for CREATE operations
-              # Let other operations use UserDefinedStrategy
-              params[:options][:strategy] = if data.to_s.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
-                                            Strategies::AutoStopStrategy.new(params[:options])
-                                          else
-                                            Strategies::UserDefinedStrategy.new(params[:options])
-                                          end
+              params[:options][:strategy] = Strategies::RoutineLoadDeploymentStrategy.new(params[:options],params[:name])
             end
           end
           

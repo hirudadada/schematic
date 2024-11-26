@@ -2,6 +2,7 @@
 
 require_relative 'types'
 require_relative 'templates'
+require_relative 'deployables/concerns/retryable'
 require_relative 'deployables/strategies'
 require_relative 'deployables/deployable_resource'
 require_relative 'deployables/config_deployable'
