@@ -87,7 +87,7 @@ module Schematic
             %("property.sasl.username" = "{{KAFKA_SECURITY_USERNAME}}"),
             %("property.sasl.password" = "{{KAFKA_SECURITY_PASSWORD}}"),
             %("property.enable.ssl.certificate.verification" = "{{KAFKA_SSL_VERIFY}}"),
-            %("confluent.schema.registry.url" = "{{SCHEMA_REGISTRY_URL}}"),
+            %("confluent.schema.registry.url" = "https://{{SCHEMA_REGISTRY_USERNAME}}:{{SCHEMA_REGISTRY_PASSWORD}}@{{SCHEMA_REGISTRY_URL}}"),
             %("property.basic.auth.credentials.source" = "USER_INFO"),
             %("kafka_partitions" = "{{KAFKA_PARTITIONS}}"),
             %("property.kafka_default_offsets" = "{{KAFKA_OFFSET}}")

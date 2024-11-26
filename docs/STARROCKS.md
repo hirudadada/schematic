@@ -152,7 +152,7 @@ FROM KAFKA
   "property.sasl.username" = "{{KAFKA_SASL_USERNAME}}",
   "property.sasl.password" = "{{KAFKA_SASL_PASSWORD}}",
   "property.enable.ssl.certificate.verification" = "{{KAFKA_SSL_VERIFY}}",
-  "confluent.schema.registry.url" = "{{SCHEMA_REGISTRY_URL}}",
+  "confluent.schema.registry.url" = "https://{{SCHEMA_REGISTRY_USERNAME}}:{{SCHEMA_REGISTRY_PASSWORD}}@{{SCHEMA_REGISTRY_URL}}",
   "property.basic.auth.credentials.source" = "USER_INFO",
   "kafka_partitions" = "{{KAFKA_PARTITIONS}}",
   "property.kafka_default_offsets" = "{{KAFKA_OFFSET}}"
@@ -198,14 +198,6 @@ This shows:
    - Direct state management
    - Records migration if in migration mode
 
-## Error Handling
-
-The deployment will stop immediately if:
-- SQL syntax errors
-- Invalid configurations
-- Connection issues
-- State validation errors (e.g., altering without pausing)
-
 ## GitOps Integration
 
 The integration generates two configmaps:
@@ -216,6 +208,14 @@ Generate GitOps configurations:
 ```bash
 rake starrocks:gitops:generate
 ```
+
+## Error Handling
+
+The deployment will retry if:
+- SQL syntax errors
+- Invalid configurations
+- Connection issues
+- State validation errors (e.g., altering without pausing)
 
 ## Retry Configuration
 
