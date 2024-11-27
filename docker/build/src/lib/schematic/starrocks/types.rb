@@ -85,8 +85,8 @@ module Schematic
 
       # Base config that all operations need
       BaseRoutineLoadConfig = Types::Hash.schema(
-        db: Types::String,
-        table: Types::String,
+        db_name: Types::String,
+        table_name: Types::String,
         routine_name: Types::String,
         operation: RoutineLoadOperation
       )

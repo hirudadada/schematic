@@ -22,6 +22,8 @@ module Schematic
           end
 
           def extract_load_info(sql)
+            logger.debug("Extracting load info from SQL: #{sql}")
+            
             operation = case sql
                         when /\ACREATE\s+ROUTINE\s+LOAD/i then 'create'
                         when /\APAUSE\s+ROUTINE\s+LOAD/i then 'pause'
@@ -30,43 +32,46 @@ module Schematic
                         when /\AALTER\s+ROUTINE\s+LOAD/i then 'alter'
                         else ''
                         end
+            logger.debug("Detected operation: #{operation}")
 
             version = name.split('-').first
+            logger.debug("Version from filename: #{version}")
             
-            # Try to extract db_name from SQL first
-            db_name = if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD\s+`?([^`\s.]+)`?\./i)
-                        $1
-                      elsif sql.match?(/FROM\s+`([^`]+)`/i)
+            db_name = if sql =~ /(?:FROM|CREATE\s+ROUTINE\s+LOAD)\s+[`"]?([^`"\s.]+)[`"]?\./i
+                        logger.debug("Found db_name in SQL: #{$1}")
                         $1
                       else
-                        options[:provider]&.db_name || 'schematic'
+                        provider_db = options[:provider]&.db_name
+                        logger.debug("Using provider db_name: #{provider_db || 'schematic'}")
+                        provider_db || 'schematic'
                       end
 
-            if sql.match?(/\ACREATE\s+ROUTINE\s+LOAD/i)
-              match = ALLOWED_SQL_PATTERNS.first.match(sql)
-              raise Schematic::Starrocks::ValidationError, "Cannot extract routine load info from CREATE SQL" unless match
+            routine_name = if sql =~ /(?:FOR|CREATE\s+ROUTINE\s+LOAD\s+(?:[^.]+\.)?)\s*[`"]?([^`"\s]+)[`"]?/i
+                             logger.debug("Found routine_name in SQL: #{$1}")
+                             $1
+                           else
+                             raise Schematic::Starrocks::ValidationError, "Cannot extract routine_name from SQL"
+                           end
 
-              Types::RoutineLoadInfo[{
-                db_name: db_name,
-                routine_name: match[:routine_name],
-                operation: operation,
-                table_name: match[:table_name],
-                version: version
-              }]
-            else
-              match = /FOR\s+`?(?<routine_name>[^`\s]+)`?/i.match(sql)
-              raise Schematic::Starrocks::ValidationError, "Cannot extract routine load info from SQL" unless match
-              
-              table_name = match[:routine_name].sub(/_rl$/, '')
-              
-              Types::RoutineLoadInfo[{
-                db_name: db_name,
-                routine_name: match[:routine_name],
-                operation: operation,
-                table_name: table_name,
-                version: version
-              }]
-            end
+            table_name = if operation == 'create' && sql =~ /ON\s+[`"]?([^`"\s]+)[`"]?/i
+                             logger.debug("Found table_name in SQL: #{$1}")
+                             $1
+                           else
+                             name = routine_name.sub(/_rl$/, '')
+                             logger.debug("Derived table_name from routine_name: #{name}")
+                             name
+                           end
+
+            load_info = {
+              db_name: db_name,
+              routine_name: routine_name,
+              operation: operation,
+              table_name: table_name,
+              version: version
+            }
+            logger.debug("Final load_info: #{load_info.inspect}")
+            
+            Types::RoutineLoadInfo[load_info]
           end
 
           def validate_statements!(statements)
@@ -123,18 +128,18 @@ module Schematic
         include DeploymentMethods
 
         ALLOWED_SQL_PATTERNS = [
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[^`\s]+`?\.)?`?(?<routine_name>[^`\s]+)`?\s+ON\s+`?(?<table_name>[^`\s]+)`?/i,
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?(?<db_name>[^`\s.]+)`?\.)?`?(?<routine_name>[^`\s.]+)`?\s+ON\s+`?(?<table_name>[^`\s.]+)`?/i,
           /\s+COLUMNS\s*\([^)]+\)/i,
           /\s+PROPERTIES\s*\([^)]+\)/i
         ].freeze
 
         ALLOWED_COMMANDS = [
           /\AUSE\s+[^;\s]+/i,
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?[^`\s]+`?\.)?`?(?<routine_name>[^`\s]+)`?\s+ON\s+`?(?<table_name>[^`\s]+)`?/i,
-          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
-          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
-          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i,
-          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?[^`\s]+`?)?(?:\s+FOR\s+`?(?<routine_name>[^`\s]+)`?)/i
+          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?(?<db_name>[^`\s.]+)`?\.)?`?(?<routine_name>[^`\s.]+)`?\s+ON\s+`?(?<table_name>[^`\s.]+)`?/i,
+          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
+          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
+          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
+          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i
         ].freeze
 
         FORBIDDEN_PATTERNS = [

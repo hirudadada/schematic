@@ -101,7 +101,7 @@ rake starrocks:routine_load:generate[table_name,create,sql]
 For YAML migrations:
 ```yaml
 # 20240107000000_create_example_table_routine_load.yaml
-:table: example_table
+:table_name: example_table
 :routine_name: example_table_rl
 :operation: :create
 :columns:

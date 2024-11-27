@@ -19,11 +19,6 @@ module Schematic
               created_time: result && (result['CreateTime'] || result[:CreateTime])
             }
           end
-
-          def self.get_applied_versions(client, db_name, table_name)
-            pattern = "#{db_name}_#{table_name}_routine_load_%"
-            client.fetch("SHOW ROUTINE LOAD FROM `#{db_name}` WHERE NAME LIKE ?", pattern).all
-          end
         end
       end
     end

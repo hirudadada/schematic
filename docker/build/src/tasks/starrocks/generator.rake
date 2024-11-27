@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/schematic/starrocks/generator'
+require_relative '../../lib/schematic/starrocks/deployables/states/routine_load_state'
 
 namespace :starrocks do
   namespace :routine_load do
@@ -59,17 +60,6 @@ namespace :starrocks do
         end
       rescue => e
         puts "Error fetching migrations: #{e.message}"
-      end
-
-      # Show current routine loads
-      routine_loads = core.client.fetch("SHOW ROUTINE LOAD ORDER BY CreateTime").all
-      if routine_loads.any?
-        puts "\nCurrent Routine Loads:"
-        routine_loads.each do |rl|
-          puts "  #{rl['Name']} - #{rl['State']} (Created: #{rl['CreateTime']})"
-        end
-      else
-        puts "\nNo routine loads found"
       end
     end
   end

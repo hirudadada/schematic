@@ -13,7 +13,7 @@ module Schematic
             # For create operation, ensure topic is set
             if data[:operation].to_sym == :create
               data = data.merge(
-                kafka: data[:kafka].merge(topic: data[:table])
+                kafka: data[:kafka].merge(topic: data[:table_name])
               )
             end
 
@@ -47,20 +47,26 @@ module Schematic
             version = name.split('-').first
             
             # Try to get db_name from data first, then provider
-            db_name = data[:db_name] || data[:db] || options[:provider]&.db_name || 'schematic'
+            db_name = data[:db_name] || options[:provider]&.db_name || 'schematic'
+
+            # Get routine_name from data
+            routine_name = data[:routine_name] || raise(Schematic::Starrocks::ValidationError, "Missing routine_name")
+
+            # Get table_name from data
+            table_name = data[:table_name] || routine_name.sub(/_rl$/, '')
 
             Types::RoutineLoadInfo[{
               db_name: db_name,
-              routine_name: data[:routine_name],
+              routine_name: routine_name,
               operation: data[:operation].to_s,
-              table_name: data[:table_name] || data[:table],
+              table_name: table_name,
               version: version
             }]
           end
 
           def create_routine_load_sql(data)
             # Get db_name from data or provider
-            db_name = data[:db_name] || data[:db] || options[:provider]&.db_name || 'schematic'
+            db_name = data[:db_name] || options[:provider]&.db_name || 'schematic'
             
             # Validate and ensure required fields
             data = data.merge(
@@ -75,7 +81,7 @@ module Schematic
             columns = data[:columns].join(', ')
 
             <<~SQL
-              CREATE ROUTINE LOAD `#{data[:db_name]}`.`#{data[:routine_name]}` ON `#{data[:table]}`
+              CREATE ROUTINE LOAD `#{data[:db_name]}`.`#{data[:routine_name]}` ON `#{data[:table_name]}`
               COLUMNS TERMINATED BY ',',
               COLUMNS (#{columns})
               PROPERTIES

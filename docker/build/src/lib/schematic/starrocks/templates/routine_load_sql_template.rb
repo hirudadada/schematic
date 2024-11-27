@@ -40,9 +40,10 @@ module Schematic
 
         def create_routine_load_sql
           properties = @provider.properties(:create)
-
-          <<~SQL
-            CREATE ROUTINE LOAD `#{@routine_name}` ON `#{@table}`
+          logger.debug("Provider db_name: #{@provider.db_name}")
+          
+          sql = <<~SQL
+            CREATE ROUTINE LOAD `#{@provider.db_name}`.`#{@routine_name}` ON `#{@table}`
             COLUMNS TERMINATED BY ',',
             COLUMNS (#{@columns.join(', ')})
             PROPERTIES
@@ -54,6 +55,9 @@ module Schematic
               #{kafka_properties}
             );
           SQL
+          
+          logger.debug("Generated SQL: #{sql}")
+          sql
         end
 
         def pause_routine_load_sql
