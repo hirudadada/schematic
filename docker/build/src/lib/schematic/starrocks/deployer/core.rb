@@ -40,20 +40,20 @@ module Schematic
             return options[:client] if options[:client]  # Keep this for testing
 
             connection_options = {
-              adapter: 'mysql2',
-              host: ENV.fetch('DB_HOST', 'dev.db'),
-              port: ENV.fetch('DB_PORT', '9030').to_i,
-              user: ENV.fetch('DB_USER', 'root'),
-              password: ENV.fetch('DB_PASSWORD', ''),
-              database: ENV.fetch('DB_NAME', 'schematic'),
+              adapter: options[:adapter],
+              host: options[:host],
+              port: options[:port],
+              user: options[:user],
+              password: options[:password],
+              database: options[:database],
               read_timeout: 300,
               connect_timeout: 60,
               reconnect: true,
               pool_timeout: 30,
               max_connections: 5,
               loggers: [logger],
-              log_sql: true,
-              sql_log_level: :debug
+              log_sql: options[:log_sql],
+              sql_log_level: options[:sql_log_level]
             }
 
             db = Sequel.connect(connection_options)
@@ -126,7 +126,7 @@ module Schematic
         def default_options
           {
             host: ENV.fetch('DB_HOST', 'localhost'),
-            port: ENV.fetch('DB_PORT', '9030'),
+            port: ENV.fetch('DB_PORT', '9030').to_i,
             database: ENV.fetch('DB_NAME', 'schematic'),
             user: ENV.fetch('DB_USER', 'root'),
             password: decrypt_password,
