@@ -5,23 +5,23 @@ metadata:
   namespace: <%= project %>
 data:
   # Routine Load Properties
-  ROUTINE_LOAD_CONCURRENT_NUMBER: <%= cluster_properties['ROUTINE_LOAD_CONCURRENT_NUMBER'] %>
-  ROUTINE_LOAD_FORMAT: <%= cluster_properties['ROUTINE_LOAD_FORMAT'] %>
-  ROUTINE_LOAD_MAX_ERROR_NUMBER: <%= cluster_properties['ROUTINE_LOAD_MAX_ERROR_NUMBER'] %>
-  ROUTINE_LOAD_MAX_FILTER_RATIO: <%= cluster_properties['ROUTINE_LOAD_MAX_FILTER_RATIO'] %>
-  ROUTINE_LOAD_MAX_BATCH_INTERVAL: <%= cluster_properties['ROUTINE_LOAD_MAX_BATCH_INTERVAL'] %>
-  ROUTINE_LOAD_MAX_BATCH_ROWS: <%= cluster_properties['ROUTINE_LOAD_MAX_BATCH_ROWS'] %>
-  ROUTINE_LOAD_TASK_CONSUME_SECOND: <%= cluster_properties['ROUTINE_LOAD_TASK_CONSUME_SECOND'] %>
-  ROUTINE_LOAD_TASK_TIMEOUT_SECOND: <%= cluster_properties['ROUTINE_LOAD_TASK_TIMEOUT_SECOND'] %>
+  ROUTINE_LOAD_CONCURRENT_NUMBER: "<%= cluster_properties['ROUTINE_LOAD_CONCURRENT_NUMBER'] %>"
+  ROUTINE_LOAD_FORMAT: "<%= cluster_properties['ROUTINE_LOAD_FORMAT'] %>"
+  ROUTINE_LOAD_MAX_ERROR_NUMBER: "<%= cluster_properties['ROUTINE_LOAD_MAX_ERROR_NUMBER'] %>"
+  ROUTINE_LOAD_MAX_FILTER_RATIO: "<%= cluster_properties['ROUTINE_LOAD_MAX_FILTER_RATIO'] %>"
+  ROUTINE_LOAD_MAX_BATCH_INTERVAL: "<%= cluster_properties['ROUTINE_LOAD_MAX_BATCH_INTERVAL'] %>"
+  ROUTINE_LOAD_MAX_BATCH_ROWS: "<%= cluster_properties['ROUTINE_LOAD_MAX_BATCH_ROWS'] %>"
+  ROUTINE_LOAD_TASK_CONSUME_SECOND: "<%= cluster_properties['ROUTINE_LOAD_TASK_CONSUME_SECOND'] %>"
+  ROUTINE_LOAD_TASK_TIMEOUT_SECOND: "<%= cluster_properties['ROUTINE_LOAD_TASK_TIMEOUT_SECOND'] %>"
 
   # Deployment Configuration
-  MIGRATION_MODE: <%= cluster_properties['MIGRATION_MODE'] %>
-  HYDRATE: <%= cluster_properties['HYDRATE'] %>
-  RESOURCE_DIR: <%= cluster_properties['RESOURCE_DIR'] %>
-  WORK_DIR: <%= cluster_properties['WORK_DIR'] %>
-  LOG_LEVEL: <%= cluster_properties['LOG_LEVEL'] %>
-  SQL_LOG_LEVEL: <%= cluster_properties['SQL_LOG_LEVEL'] %>
+  MIGRATION_MODE: "<%= cluster_properties['MIGRATION_MODE'] %>"
+  HYDRATE: "<%= cluster_properties['HYDRATE'] %>"
+  RESOURCE_DIR: "<%= cluster_properties['RESOURCE_DIR'] %>"
+  WORK_DIR: "<%= cluster_properties['WORK_DIR'] %>"
+  LOG_LEVEL: "<%= cluster_properties['LOG_LEVEL'] %>"
+  SQL_LOG_LEVEL: "<%= cluster_properties['SQL_LOG_LEVEL'] %>"
 
   # Retry Configuration
-  RETRY_MAX_ATTEMPTS: <%= cluster_properties['RETRY_MAX_ATTEMPTS'] %>
-  RETRY_BASE_DELAY: <%= cluster_properties['RETRY_BASE_DELAY'] %>
+  RETRY_MAX_ATTEMPTS: "<%= cluster_properties['RETRY_MAX_ATTEMPTS'] %>"
+  RETRY_BASE_DELAY: "<%= cluster_properties['RETRY_BASE_DELAY'] %>"

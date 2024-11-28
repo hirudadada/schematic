@@ -64,8 +64,8 @@ module Schematic
         def cluster_credentials
           @cluster_credentials ||= {
             # Kafka Configuration
-            'KAFKA_BROKER_LIST' => ENV.fetch('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092'),
-            'KAFKA_SECURITY_PROTOCOL' => ENV.fetch('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL'),
+            'KAFKA_BROKER_LIST' => quote_value(ENV.fetch('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092')),
+            'KAFKA_SECURITY_PROTOCOL' => quote_value(ENV.fetch('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL')),
             'KAFKA_SASL_MECHANISM' => ENV.fetch('KAFKA_SASL_MECHANISM', 'PLAIN'),
             'KAFKA_SASL_USERNAME' => ENV.fetch('KAFKA_SASL_USERNAME', 'kafka_user'),
             # 'KAFKA_SASL_PASSWORD' => ENV.fetch('KAFKA_SASL_PASSWORD', ''),
@@ -85,8 +85,8 @@ module Schematic
         def cluster_properties
           @cluster_properties ||= {
             # Routine Load Properties
-            'ROUTINE_LOAD_CONCURRENT_NUMBER' => ENV.fetch('ROUTINE_LOAD_CONCURRENT_NUMBER', '3'),
-            'ROUTINE_LOAD_FORMAT' => ENV.fetch('ROUTINE_LOAD_FORMAT', 'json'),
+            'ROUTINE_LOAD_CONCURRENT_NUMBER' => quote_value(ENV.fetch('ROUTINE_LOAD_CONCURRENT_NUMBER', '3')),
+            'ROUTINE_LOAD_FORMAT' => quote_value(ENV.fetch('ROUTINE_LOAD_FORMAT', 'json')),
             'ROUTINE_LOAD_MAX_ERROR_NUMBER' => ENV.fetch('ROUTINE_LOAD_MAX_ERROR_NUMBER', '0'),
             'ROUTINE_LOAD_MAX_FILTER_RATIO' => ENV.fetch('ROUTINE_LOAD_MAX_FILTER_RATIO', '1.0'),
             'ROUTINE_LOAD_MAX_BATCH_INTERVAL' => ENV.fetch('ROUTINE_LOAD_MAX_BATCH_INTERVAL', '10'),
@@ -106,6 +106,12 @@ module Schematic
             'RETRY_MAX_ATTEMPTS' => ENV.fetch('RETRY_MAX_ATTEMPTS', '3'),
             'RETRY_BASE_DELAY' => ENV.fetch('RETRY_BASE_DELAY', '2')
           }
+        end
+
+        private
+
+        def quote_value(value)
+          value.to_s.gsub('"', '\"')  # Escape any existing quotes
         end
       end
     end
