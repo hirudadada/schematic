@@ -7,8 +7,9 @@ module Schematic
         include Defaults
         include Naming
 
-        def initialize(table_name, operation = :create, provider = nil)
+        def initialize(table_name, operation = :create, provider = nil, logger = nil)
           @provider = provider || Providers::RoutineLoadConfigProvider.create
+          @logger = logger || Logger.new($stdout)
           routine_name = Naming.generate_routine_name(table_name)
           migration_name = Naming.generate_migration_name(table_name, operation)
           

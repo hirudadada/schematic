@@ -7,9 +7,10 @@ module Schematic
         include Defaults
         include Naming
 
-        def initialize(table_name, operation = :create, provider = nil)
+        def initialize(table_name, operation = :create, provider = nil, logger = nil)
           routine_name = Naming.generate_routine_name(table_name)
           @provider = provider || Providers::RoutineLoadConfigProvider.create
+          @logger = logger || Logger.new($stdout)
           migration_name = Naming.generate_migration_name(table_name, operation)
           
           super(migration_name, :routine_load)
@@ -40,7 +41,7 @@ module Schematic
 
         def create_routine_load_sql
           properties = @provider.properties(:create)
-          logger.debug("Provider db_name: #{@provider.db_name}")
+          @logger.debug("Provider db_name: #{@provider.db_name}")
           
           sql = <<~SQL
             CREATE ROUTINE LOAD `#{@provider.db_name}`.`#{@routine_name}` ON `#{@table}`
@@ -56,7 +57,7 @@ module Schematic
             );
           SQL
           
-          logger.debug("Generated SQL: #{sql}")
+          @logger.debug("Generated SQL: #{sql}")
           sql
         end
 

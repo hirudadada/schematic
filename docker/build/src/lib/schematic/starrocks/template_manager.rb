@@ -40,14 +40,24 @@ module Schematic
         end
       end
 
-      private
+      def logger
+        @logger ||= init_logger
+      end
+
+      protected
+
+      def init_logger
+        logger = options[:logger] || Logger.new($stdout)
+        logger.level = options[:log_level] || Logger::INFO
+        logger
+      end
 
       def template_for(resource_type, table_name, format, operation)
         case [resource_type, format]
         when [:routine_load, :sql]
-          Templates::RoutineLoadSqlTemplate.new(table_name, operation)
+          Templates::RoutineLoadSqlTemplate.new(table_name, operation, nil, logger)
         when [:routine_load, :yaml]
-          Templates::RoutineLoadConfigTemplate.new(table_name, operation)
+          Templates::RoutineLoadConfigTemplate.new(table_name, operation, nil, logger)
         else
           raise ArgumentError, "Unsupported resource type: #{resource_type} or format: #{format}"
         end
