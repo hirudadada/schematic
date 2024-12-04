@@ -24,6 +24,8 @@ A database deployment and management tool supporting multiple databases and depl
 
 ## Quick Start
 
+- [Getting Started](docs/GETTING_STARTED.md)
+
 ### Project Creation
 ```bash
 # Create new StarRocks project
@@ -115,6 +117,7 @@ make push.app.rel
 ## Documentation
 
 - [Development Guide](docs/DEVELOPMENT.md)
+- [Getting Started](docs/GETTING_STARTED.md)
 - [StarRocks Guide](docs/STARROCKS.md)
 - [Project Structure](docs/PROJECT_STRUCTURE.md)
 - [Changelog](docs/CHANGELOG.md)
