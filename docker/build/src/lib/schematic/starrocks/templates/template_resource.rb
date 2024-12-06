@@ -6,7 +6,7 @@ module Schematic
       class TemplateResource
         attr_reader :name, :type, :provider
 
-        def initialize(name, type, provider = nil)
+        def initialize(name, type, provider = nil, logger = nil)
           @name = name
           @type = type
         end

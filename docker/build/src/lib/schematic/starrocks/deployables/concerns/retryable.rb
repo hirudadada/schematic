@@ -20,6 +20,8 @@ module Schematic
             rescue StandardError => e
               if e.message.include?('Could not transform')
                 handle_state_transformation_error(e)
+              elsif e.message.include?('Received malformed packet')
+                handle_connection_error(e, retries, max_retries, base_delay)
               elsif e.is_a?(Mysql2::Error)
                 handle_mysql_error(e)
               else
@@ -34,7 +36,7 @@ module Schematic
             retries += 1
             if retries <= max_retries
               delay = base_delay * retries
-              logger.warn("Connection lost, retrying in #{delay}s (attempt #{retries}/#{max_retries})")
+              logger.warn("Connection lost (#{error.message}), retrying in #{delay}s (attempt #{retries}/#{max_retries})")
               sleep(delay)
               raise Sequel::DatabaseDisconnectError.new(error.message)
             end

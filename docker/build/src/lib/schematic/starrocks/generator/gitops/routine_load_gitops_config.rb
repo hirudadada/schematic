@@ -97,6 +97,7 @@ module Schematic
             # Deployment Configuration
             'MIGRATION_MODE' => ENV.fetch('MIGRATION_MODE', 'true'),
             'HYDRATE' => ENV.fetch('HYDRATE', 'true'),
+            'DYNAMIC_SQL' => ENV.fetch('DYNAMIC_SQL', 'true'),
             'RESOURCE_DIR' => ENV.fetch('RESOURCE_DIR', 'db/starrocks'),
             'WORK_DIR' => ENV.fetch('WORK_DIR', nil),
             'LOG_LEVEL' => ENV.fetch('LOG_LEVEL', '1'),  # Use numeric level (1 = INFO)

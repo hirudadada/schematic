@@ -70,11 +70,17 @@ module Schematic
               version: version
             }
             logger.debug("Final load_info: #{load_info.inspect}")
-            
+
             Types::RoutineLoadInfo[load_info]
           end
 
           def validate_statements!(statements)
+            validate_static_statements!(statements)
+          end
+
+          protected
+
+          def validate_static_statements!(statements)
             statements.each do |stmt|
               unless ALLOWED_COMMANDS.any? { |pattern| stmt.match?(pattern) }
                 raise Schematic::Starrocks::ValidationError, "Invalid routine load command: #{stmt}"

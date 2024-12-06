@@ -103,23 +103,6 @@ module Schematic
           properties.map { |k, v| %("#{k}" = "#{format_value(v)}") }.join(",\n  ")
         end
 
-        #{format_kafka_config(@provider.kafka_config, @provider.schema_registry_config)}
-        # def format_kafka_config(kafka, schema_registry)
-        #   [
-        #     %("kafka_broker_list" = "#{kafka[:broker_list]}"),
-        #     %("kafka_topic" = "#{@table}"),
-        #     %("property.security.protocol" = "#{kafka[:security][:protocol]}"),
-        #     %("property.sasl.mechanism" = "#{kafka[:security][:mechanism]}"),
-        #     %("property.sasl.username" = "#{kafka[:security][:username]}"),
-        #     %("property.sasl.password" = "#{kafka[:security][:password]}"),
-        #     %("property.enable.ssl.certificate.verification" = "#{kafka[:security][:ssl_verify]}"),
-        #     %("confluent.schema.registry.url" = "https://#{schema_registry[:auth][:username]}:#{schema_registry[:auth][:password]}@#{schema_registry[:url]}"),
-        #     %("property.basic.auth.credentials.source" = "USER_INFO"),
-        #     %("kafka_partitions" = "#{kafka[:partitions]}"),
-        #     %("property.kafka_default_offsets" = "#{kafka[:offset]}")
-        #   ].join(",\n  ")
-        # end
-
         def format_value(value)
           case value
           when true, 'true' then 'true'

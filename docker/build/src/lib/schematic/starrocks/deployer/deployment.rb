@@ -101,7 +101,10 @@ module Schematic
         end
 
         def register_resource_classes
-          if hydrate_enabled?
+          if dynamic_sql?
+            # Register appropriate deployable based on dynamic_sql flag
+            resource_repo.register(:routine_load, :sql, Schematic::Starrocks::Deployables::DynamicRoutineLoadSqlDeployable)
+          elsif hydrate_enabled?
             # Use hydratable versions by default
             resource_repo.register(:routine_load, :sql, Deployables::HydratableRoutineLoadSqlDeployable)
             resource_repo.register(:routine_load, :yaml, Deployables::HydratableRoutineLoadConfigDeployable)
@@ -110,7 +113,6 @@ module Schematic
             resource_repo.register(:routine_load, :sql, Deployables::RoutineLoadSqlDeployable)
             resource_repo.register(:routine_load, :yaml, Deployables::RoutineLoadConfigDeployable)
           end
-          resource_repo.register(:materialized_view, :sql, Deployables::CreateMaterializedViewSqlDeployable)
         end
 
         def resource_dir(resource_type)
@@ -131,6 +133,10 @@ module Schematic
         end
 
         private
+
+        def dynamic_sql?
+          options[:dynamic_sql] != false
+        end
 
         def hydrate_enabled?
           # Default to true unless explicitly set to false

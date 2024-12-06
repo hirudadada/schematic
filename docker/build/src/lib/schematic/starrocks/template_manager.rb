@@ -12,7 +12,10 @@ module Schematic
 
       def initialize(resource_dir:, **opts)
         @resource_dir = resource_dir
-        @options = { migration_mode: true }.merge(opts)  # Default to migration mode
+        @options = { 
+          migration_mode: true,
+          dynamic_sql: false 
+        }.merge(opts)
       end
 
       def create_template(resource_type, table_name, format, operation = :create)
@@ -55,7 +58,11 @@ module Schematic
       def template_for(resource_type, table_name, format, operation)
         case [resource_type, format]
         when [:routine_load, :sql]
-          Templates::RoutineLoadSqlTemplate.new(table_name, operation, nil, logger)
+          if options[:dynamic_sql]
+            Templates::DynamicRoutineLoadSqlTemplate.new(table_name, operation, nil, logger)
+          else
+            Templates::RoutineLoadSqlTemplate.new(table_name, operation, nil, logger)
+          end
         when [:routine_load, :yaml]
           Templates::RoutineLoadConfigTemplate.new(table_name, operation, nil, logger)
         else

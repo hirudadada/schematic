@@ -21,7 +21,7 @@ module Schematic
         def register(task, type, klass)
           task = Types::StrictSymbol[task]
           type = Types::StrictSymbol[type]
-          
+
           @resources[task] ||= {}
           @resources[task][type] = klass
         end
@@ -29,7 +29,7 @@ module Schematic
         def get(task, type)
           task = Types::StrictSymbol[task]
           type = Types::StrictSymbol[type]
-          
+
           @resources.dig(task, type) || raise(KeyError, "No resource found for task: #{task}, type: #{type}")
         end
 
@@ -41,9 +41,9 @@ module Schematic
             data: data,
             options: options
           }]
-          
+
           klass = get(params[:task], params[:type])
-          
+
           # Set strategy based on migration mode and operation type
           if params[:task] == :routine_load
             if params[:options][:migration_mode]
@@ -52,7 +52,7 @@ module Schematic
               params[:options][:strategy] = Strategies::RoutineLoadDeploymentStrategy.new(params[:options],params[:name])
             end
           end
-          
+
           klass.new(params[:name], params[:data], params[:options])
         end
       end

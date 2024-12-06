@@ -1,1 +1,0 @@
-PAUSE ROUTINE LOAD FOR `rl_example_table`;
