@@ -3,21 +3,30 @@
 module Schematic
   module Starrocks
     module Deployables
-      class HydratableRoutineLoadConfigDeployable < HydratableDeployableResource
-        include RoutineLoadConfigDeployable::DeploymentMethods
-        include Defaults
+      class HydratableRoutineLoadConfigDeployable < RoutineLoadConfigDeployable
+        include Concerns::Hydratable
 
-        def deploy_hydrated(client, hydrated_data)
+        def deploy(client)
+          execute_with_hydration(client, data)
+        end
+
+        protected
+
+        def execute_deploy(client, hydrated_data)
           provider = options[:provider] || Providers::RoutineLoadConfigProvider.create
-          load_info = extract_load_info(hydrated_data)
-
+          
           client.transaction do
             client.run("USE #{provider.db_name};")
             
+            load_info = extract_load_info(hydrated_data)
             strategy = @strategy || Strategies.create(options)
             strategy.execute(client, [build_sql(hydrated_data)], load_info)
           end
-          logger.info("Deployed routine load operation: #{hydrated_data[:operation]} for #{hydrated_data[:routine_name]}")
+        end
+
+        def hydrate_placeholders(data)
+          # 實現 YAML 配置的變數替換邏輯
+          Types::RoutineLoadConfig[data]
         end
 
         private

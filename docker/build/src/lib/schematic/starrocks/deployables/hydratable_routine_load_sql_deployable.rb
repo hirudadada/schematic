@@ -3,27 +3,34 @@
 module Schematic
   module Starrocks
     module Deployables
-      class HydratableRoutineLoadSqlDeployable < HydratableDeployableResource
-        include RoutineLoadSqlDeployable::DeploymentMethods
+      class HydratableRoutineLoadSqlDeployable < StaticRoutineLoadSqlDeployable
+        include Concerns::Hydratable
 
         def deploy(client)
-          hydrated_sql = Types::StrictString[hydrate_placeholders(data)]
-          
+          execute_with_hydration(client, data)
+        end
+
+        protected
+
+        def execute_deploy(client, hydrated_data)
           client.transaction do
-            statements = parse_statements(hydrated_sql)
+            statements = parse_statements(hydrated_data)
             validate_statements!(statements)
 
             load_info = if has_create_statement?(statements)
-                          create_stmt = extract_create_statement(statements)
-                          extract_load_info(create_stmt)
-                        else
-                          extract_load_info(statements.first)
-                        end
-        
+              create_stmt = extract_create_statement(statements)
+              extract_load_info(create_stmt)
+            else
+              extract_load_info(statements.first)
+            end
+    
             strategy = @strategy || Strategies.create(options)
             strategy.execute(client, statements, load_info)
           end
-          logger.info("Deployed #{name}")
+        end
+
+        def hydrate_placeholders(data)
+          Types::StrictString[data]
         end
       end
     end

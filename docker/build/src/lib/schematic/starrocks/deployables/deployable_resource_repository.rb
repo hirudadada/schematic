@@ -42,14 +42,22 @@ module Schematic
             options: options
           }]
 
-          klass = get(params[:task], params[:type])
+          klass = if params[:task] == :routine_load && type == :sql
+            if options[:dynamic_sql]
+              DynamicRoutineLoadSqlDeployable
+            else
+              StaticRoutineLoadSqlDeployable
+            end
+          else
+            get(params[:task], params[:type])
+          end
 
-          # Set strategy based on migration mode and operation type
+          # Set strategy based on migration mode
           if params[:task] == :routine_load
             if params[:options][:migration_mode]
               params[:options][:strategy] = Strategies::MigrationStrategy.new(params[:options], params[:name])
             else
-              params[:options][:strategy] = Strategies::RoutineLoadDeploymentStrategy.new(params[:options],params[:name])
+              params[:options][:strategy] = Strategies::RoutineLoadDeploymentStrategy.new(params[:options], params[:name])
             end
           end
 

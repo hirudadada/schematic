@@ -5,13 +5,21 @@
         protected
 
         def format_properties(properties)
+          if @operation == :create
+            format_concat_properties(properties)
+          else
+            super
+          end
+        end
+
+        def format_concat_properties(properties)
           properties.map.with_index do |(k, v), i|
             last = i == properties.length - 1
-            %('"#{k}"="#{format_value(v)}"#{last ? "" : ","} ')
+            %('"#{k}"="#{format_concat_value(v)}"#{last ? "" : ","} ')
           end.join(",\n    ")
         end
 
-        def format_value(value)
+        def format_concat_value(value)
           case value
           when true, 'true' then 'true'
           when false, 'false' then 'false'

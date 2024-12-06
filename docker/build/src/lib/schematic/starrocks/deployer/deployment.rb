@@ -89,7 +89,8 @@ module Schematic
               logger: deployer.logger,
               log_level: deployer.options[:log_level],
               provider: provider,
-              migration_mode: options[:migration_mode]
+              migration_mode: options[:migration_mode],
+              dynamic_sql: options[:dynamic_sql]
             )
             deployer.logger.debug("Created resource: #{resource.class}")
             deployer.logger.debug("Resource strategy: #{resource.strategy&.class}")
