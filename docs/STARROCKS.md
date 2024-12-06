@@ -70,6 +70,7 @@ ROUTINE_LOAD_TASK_TIMEOUT_SECOND=60
 # Deployment Configuration
 MIGRATION_MODE=true  # Set to false for Direct Mode
 HYDRATE=true        # Must be true for encrypted credentials
+DYNAMIC_SQL=true    # for usage of dynamic sql (CONCAT syntax), if this is true then HYDRATE will not take effect.
 RESOURCE_DIR=db/starrocks
 WORK_DIR=db/starrocks
 LOG_LEVEL=1         # 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR

@@ -196,3 +196,9 @@ rake starrocks:routine_load:deploy
 
 1. Consolidate retry mechanism
 2. fix inconsistent naming module and update template generation
+
+## [0.9.1] (2024-12-06)
+
+* Changed syntax for create routine load to use CONCAT with dynamic sql, the 
+hydrate flag and yaml creation option is deprecated.
+

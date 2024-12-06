@@ -42,8 +42,8 @@ docker login quay.io
 
 Pull the image
 ```bash
-docker pull quay.io/larryloi/schematic_base:latest
-docker pull quay.io/larryloi/schematic_base:0.8.5-rc.1
+# docker pull quay.io/larryloi/schematic_base:latest
+docker pull quay.io/larryloi/schematic_base:0.9.2-rc.1
 ```
 
 ## Creating a New Project
@@ -128,6 +128,9 @@ make create.project.starrocks project=your-project-name app=your-app-name target
    - Edit `docker/make.env/starrocks/cluster.env` for Kafka and Schema Registry settings
 
 3. Initialize database:
+
+> [Note] This is automated for StarRocks project starting from 0.8.4
+
 ```bash
 cd docker
 make shell.dev.db

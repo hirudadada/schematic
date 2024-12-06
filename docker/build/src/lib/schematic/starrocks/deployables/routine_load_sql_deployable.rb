@@ -8,33 +8,6 @@ module Schematic
       class RoutineLoadSqlDeployable < SqlDeployable
         include Defaults
 
-        ALLOWED_SQL_PATTERNS = [
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?(?<db_name>[^`\s.]+)`?\.)?`?(?<routine_name>[^`\s.]+)`?\s+ON\s+`?(?<table_name>[^`\s.]+)`?/i,
-          /\s+COLUMNS\s*\([^)]+\)/i,
-          /\s+PROPERTIES\s*\([^)]+\)/i
-        ].freeze
-
-        ALLOWED_COMMANDS = [
-          /\AUSE\s+[^;\s]+/i,
-          /\ACREATE\s+ROUTINE\s+LOAD\s+(?:`?(?<db_name>[^`\s.]+)`?\.)?`?(?<routine_name>[^`\s.]+)`?\s+ON\s+`?(?<table_name>[^`\s.]+)`?/i,
-          /\APAUSE\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
-          /\ARESUME\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
-          /\ASTOP\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i,
-          /\AALTER\s+ROUTINE\s+LOAD(?:\s+FROM\s+`?(?<db_name>[^`\s.]+)`?)?\s+FOR\s+`?(?<routine_name>[^`\s.]+)`?/i
-        ].freeze
-
-        FORBIDDEN_PATTERNS = [
-          /\/\*/,
-          /xp_/i,
-          /EXEC\s+/i,
-          /EXECUTE\s+/i,
-          /UNION/i,
-          /INTO\s+/i,
-          /DROP\s+/i,
-          /DELETE\s+/i,
-          /UPDATE\s+/i
-        ].freeze
-
         def deploy(client)
           client.transaction do
             statements = parse_statements(data)

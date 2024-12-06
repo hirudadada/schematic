@@ -1,3 +1,7 @@
+## [0.9.1] (2024-12-06)
+
+* Changed syntax for
+
 ## [0.8.5] (2024-11-07)
 
 * Refactored database setup initialization
