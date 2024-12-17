@@ -23,8 +23,10 @@ services:
     environment:
       DB_HOST: ${DEV_DB_HOST}
       DB_NAME: ${DEV_DB_NAME}
+      DB_DEPLOY_USER: ${DEV_DB_USER}
+      DB_DEPLOY_PASSWORD: ${DEV_DB_PASSWORD}
     volumes:
       - ./starrocks/scripts:${DB_HOME}
     working_dir: ${DB_HOME}
-    command: /bin/bash -c "${DB_HOME}/create_initial_database.sh"
+    command: /bin/bash -c "${DB_HOME}/create_initial_database.sh && ${DB_HOME}/setup_user.sh && ${DB_HOME}/setup_permissions.sh"
 

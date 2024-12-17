@@ -63,19 +63,12 @@ module Schematic
 
         def cluster_credentials
           @cluster_credentials ||= {
-            # Kafka Configuration
-            'KAFKA_BROKER_LIST' => quote_value(ENV.fetch('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092')),
-            'KAFKA_SECURITY_PROTOCOL' => quote_value(ENV.fetch('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL')),
-            'KAFKA_SASL_MECHANISM' => ENV.fetch('KAFKA_SASL_MECHANISM', 'PLAIN'),
+            # Kafka
             'KAFKA_SASL_USERNAME' => ENV.fetch('KAFKA_SASL_USERNAME', 'kafka_user'),
             # 'KAFKA_SASL_PASSWORD' => ENV.fetch('KAFKA_SASL_PASSWORD', ''),
             'KAFKA_SASL_PASSWORD_ENCRYPTED' => kafka_sasl_password_encrypted,
-            'KAFKA_SSL_VERIFY' => ENV.fetch('KAFKA_SSL_VERIFY', 'false'),
-            'KAFKA_PARTITIONS' => ENV.fetch('KAFKA_PARTITIONS', '0,1,2'),
-            'KAFKA_OFFSET' => ENV.fetch('KAFKA_OFFSET', 'OFFSET_BEGINNING'),
 
-            # Schema Registry Configuration
-            'SCHEMA_REGISTRY_URL' => ENV.fetch('SCHEMA_REGISTRY_URL', 'schema-registry:8081'),
+            # Schema Registry
             'SCHEMA_REGISTRY_USERNAME' => ENV.fetch('SCHEMA_REGISTRY_USERNAME', 'registry_user'),
             # 'SCHEMA_REGISTRY_PASSWORD' => ENV.fetch('SCHEMA_REGISTRY_PASSWORD', ''),
             'SCHEMA_REGISTRY_PASSWORD_ENCRYPTED' => schema_registry_password_encrypted,
@@ -84,6 +77,17 @@ module Schematic
 
         def cluster_properties
           @cluster_properties ||= {
+            # Kafka Configuration
+            'KAFKA_BROKER_LIST' => quote_value(ENV.fetch('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092')),
+            'KAFKA_SECURITY_PROTOCOL' => quote_value(ENV.fetch('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL')),
+            'KAFKA_SASL_MECHANISM' => ENV.fetch('KAFKA_SASL_MECHANISM', 'PLAIN'),
+            'KAFKA_SSL_VERIFY' => ENV.fetch('KAFKA_SSL_VERIFY', 'false'),
+            'KAFKA_PARTITIONS' => ENV.fetch('KAFKA_PARTITIONS', '0,1,2'),
+            'KAFKA_OFFSET' => ENV.fetch('KAFKA_OFFSET', 'OFFSET_BEGINNING'),
+
+            # Schema Registry Configuration
+            'SCHEMA_REGISTRY_URL' => ENV.fetch('SCHEMA_REGISTRY_URL', 'schema-registry:8081'),
+
             # Routine Load Properties
             'ROUTINE_LOAD_CONCURRENT_NUMBER' => quote_value(ENV.fetch('ROUTINE_LOAD_CONCURRENT_NUMBER', '3')),
             'ROUTINE_LOAD_FORMAT' => quote_value(ENV.fetch('ROUTINE_LOAD_FORMAT', 'json')),
