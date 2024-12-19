@@ -25,7 +25,7 @@ module Schematic
             'KAFKA_SASL_MECHANISM' => options[:provider]&.kafka_config[:security][:mechanism],
             'KAFKA_SASL_USERNAME' => options[:provider]&.kafka_config[:security][:username],
             'KAFKA_SASL_PASSWORD' => options[:provider]&.kafka_config[:security][:password],
-            'KAFKA_SSL_VERIFY' => options[:provider]&.kafka_config[:ssl_verfy].to_s,
+            'KAFKA_SSL_VERIFY' => options[:provider]&.kafka_config[:security][:ssl_verfy].to_s || 'false',
             'SCHEMA_REGISTRY_URL' => options[:provider]&.schema_registry_config[:url],
             'SCHEMA_REGISTRY_USERNAME' => options[:provider]&.schema_registry_config[:auth][:username],
             'SCHEMA_REGISTRY_PASSWORD' => options[:provider]&.schema_registry_config[:auth][:password]

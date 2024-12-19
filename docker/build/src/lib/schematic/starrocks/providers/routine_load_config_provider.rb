@@ -19,9 +19,12 @@ module Schematic
           @kafka_offset = nil
           @kafka_sasl_username = nil
           @kafka_sasl_password = nil
+          @kafka_ssl_verify = nil
           @schema_registry_url = nil
           @sink_username = nil
           @sink_password = nil
+          @kafka_config = nil
+          @schema_registry_config = nil
           @properties = init_properties
         end
 
@@ -30,8 +33,11 @@ module Schematic
           @kafka_broker_list = fetch_env('KAFKA_BROKER_LIST', 'broker1:9092,broker2:9092')
           @kafka_partitions = fetch_env('KAFKA_PARTITIONS', '0,1,2')
           @kafka_offset = fetch_env('KAFKA_OFFSET', 'OFFSET_BEGINNING')
+          @kafka_security_protocol = fetch_env('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL')
+          @kafka_sasl_mechanism = fetch_env('KAFKA_SASL_MECHANISM', 'PLAIN')
           @kafka_sasl_username = fetch_env('KAFKA_SASL_USERNAME', 'kafka_user')
           @kafka_sasl_password = decrypt_kafka_password
+          @kafka_ssl_verify = fetch_env('KAFKA_SSL_VERIFY', 'false')
           @schema_registry_url = fetch_env('SCHEMA_REGISTRY_URL', 'schema-registry:8081')
           @sink_username = fetch_env('SCHEMA_REGISTRY_USERNAME', 'registry_user')
           @sink_password = decrypt_schema_registry_password
@@ -57,22 +63,22 @@ module Schematic
         end
 
         def kafka_config
-          {
+          @kafka_config ||= {
             broker_list: @kafka_broker_list,
             partitions: @kafka_partitions,
             offset: @kafka_offset,
             security: {
-              protocol: 'SASL_SSL',
-              mechanism: 'PLAIN',
+              protocol: @kafka_security_protocol,
+              mechanism: @kafka_sasl_mechanism,
               username: @kafka_sasl_username,
               password: @kafka_sasl_password,
-              ssl_verify: false
+              ssl_verify: @kafka_ssl_verify,
             }
           }
         end
 
         def schema_registry_config
-          Types::SchemaRegistryConfig[{
+          @schema_registry_config ||= Types::SchemaRegistryConfig[{
             url: @schema_registry_url,
             auth: {
               username: @sink_username,
